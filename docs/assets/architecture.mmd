@@ -1,0 +1,30 @@
+%% SEOS Repository Architecture
+%% Framework concerns (reusable) are separated from repository concerns (product-specific).
+flowchart TB
+    subgraph Framework["SEOS Framework (reusable — the SEOS repo)"]
+        Core["Core Runtime"]
+        Workflow["Workflow Engine<br/>(GitHub Actions today)"]
+        Context["Context Engine<br/>(compose-context)"]
+        AgentRT["Agent Runtime<br/>(dispatch + roles)"]
+        Knowledge["Knowledge Engine"]
+        Plugins["Plugin System<br/>(stack presets, engineering plugins)"]
+
+        Core --> Workflow
+        Workflow --> Context
+        Context --> AgentRT
+        AgentRT --> Knowledge
+        Core --> Plugins
+    end
+
+    subgraph Repo["Repository (product-specific — lives in the consuming repo)"]
+        Config["Repository Configuration<br/>(seos.yml)"]
+        Rules["Repository Rules<br/>(.github/agent-rules/)"]
+        RepoKnow[("Repository Knowledge")]
+        RepoWork["Repository Workflows<br/>(.github/workflows/)"]
+    end
+
+    Plugins --> Config
+    Config --> Rules
+    Rules --> RepoKnow
+    RepoKnow --> RepoWork
+    RepoWork -.instantiates.-> Workflow

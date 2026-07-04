@@ -1,12 +1,27 @@
 project:
-  name: "My App"
+  name: "{{PROJECT_NAME}}"
   defaultBranch: main
 agent:
   model: composer-2.5
   startingRef: main
 commands:
   build: "npm run build"
-  test: "npm run test:e2e"
+  test: "{{TEST_COMMAND}}"
+labels:
+  needsSpec: needs-spec
+  specAdded: spec-added
+  ready: ready
+  agentWorking: agent-working
+  prOpened: pr-opened
+  agentFailed: agent-failed
+  noAgent: no-agent
+  agentManual: agent-manual
+automation:
+  # Workflows honor GitHub Actions repo variables (default on):
+  #   AGENT_AUTO_SPEC_ENABLED, AGENT_AUTO_READY_ENABLED
+  # Set either variable to "false" to disable that stage.
+  autoSpecOnOpen: true
+  autoReadyAfterSpec: true
 prompt:
   postImplementReminders: |
     Open a PR with `Fixes #{N}` in the body — leave it as a **draft**.

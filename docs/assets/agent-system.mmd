@@ -1,0 +1,30 @@
+%% SEOS Agent System
+%% Each engineering discipline is an independent, bounded agent role.
+%% [built] roles exist today. [planned] roles are on the roadmap.
+flowchart LR
+    Human["Human Engineer<br/>(product direction, prioritization, ownership)"]
+
+    subgraph Roles["Engineering Agent Roles"]
+        Planning["Planning Agent [built]"]
+        Arch["Architecture Agent [partial]"]
+        Coding["Coding Agent [built]"]
+        Testing["Testing Agent [partial]"]
+        Docs["Documentation Agent [partial]"]
+        Review["Review Agent [partial]"]
+        Security["Security Agent [partial]"]
+        A11y["Accessibility Agent [partial]"]
+        Deploy["Deployment Agent [partial]"]
+        Know["Knowledge Agent [partial]"]
+    end
+
+    Human -->|intent| Planning
+    Planning -->|spec| Human
+    Human -->|approve| Coding
+    Coding -->|draft PR| Review
+    Review --> Security
+    Review --> A11y
+    Coding -.-> Testing
+    Coding -.-> Docs
+    Human -->|approve merge| Deploy
+    Deploy --> Know
+    Know -.knowledge.-> Planning

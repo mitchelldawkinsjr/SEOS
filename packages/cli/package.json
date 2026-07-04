@@ -1,10 +1,10 @@
 {
-  "name": "issue-bench",
+  "name": "seos",
   "version": "0.2.0",
-  "description": "CLI to scaffold human-gated GitHub issue → spec → Cursor agent pipelines",
+  "description": "SEOS — CLI to install a Software Engineering Operating System (human-gated issue → spec → Cursor agent pipeline) into a repo",
   "type": "module",
   "bin": {
-    "issue-bench": "./bin/issue-bench.mjs"
+    "seos": "./bin/seos.mjs"
   },
   "files": [
     "bin"
@@ -15,7 +15,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mitchelldawkinsjr/issue-bench.git",
+    "url": "https://github.com/mitchelldawkinsjr/SEOS.git",
     "directory": "packages/cli"
   }
 }

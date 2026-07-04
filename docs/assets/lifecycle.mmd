@@ -1,0 +1,27 @@
+%% SEOS Engineering Lifecycle
+%% Engineering is modeled as a lifecycle, not a set of GitHub Actions.
+%% Solid arrows are the default path. Human gates are marked [H].
+flowchart TD
+    Intent["Engineering Intent<br/>(a human states what should change)"]
+    Planning["Planning<br/>spec, tasks, ambiguity"]
+    Architecture["Architecture<br/>(optional) boundaries, migrations, APIs"]
+    Implementation["Implementation<br/>reviewable pull request"]
+    Validation["Validation<br/>tests, CI, regressions"]
+    Documentation["Documentation<br/>keep docs from drifting"]
+    Review["Review<br/>code, security, accessibility"]
+    Deployment["Deployment<br/>release + health checks"]
+    Learning["Learning<br/>capture lessons + patterns"]
+    Knowledge[("Repository Knowledge")]
+
+    Intent --> Planning
+    Planning -->|H: approve spec| Architecture
+    Architecture --> Implementation
+    Planning -->|H: approve spec| Implementation
+    Implementation --> Validation
+    Validation --> Documentation
+    Documentation --> Review
+    Review -->|H: approve merge| Deployment
+    Deployment --> Learning
+    Learning --> Knowledge
+    Knowledge -.feeds context.-> Planning
+    Knowledge -.feeds context.-> Implementation

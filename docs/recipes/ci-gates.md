@@ -1,8 +1,8 @@
 # Recipe: CI quality gates
 
-Tier 2 — optional hardening around the issue-bench agent pipeline.
+Tier 2 — optional hardening around the SEOS agent pipeline.
 
-The core issue-bench template (Tier 1) covers **spec → implement → draft PR**. CI gates add mechanical checks before merge and after deploy.
+The core SEOS template (Tier 1) covers **spec → implement → draft PR**. CI gates add mechanical checks before merge and after deploy.
 
 ## Reference implementation
 
@@ -18,7 +18,7 @@ See [Fasted issue #47](https://github.com/mitchelldawkinsjr/Fasted/issues/47) an
 | `a11y-audit.yml` | axe + Playwright on Vite preview |
 | `ponytail-audit.yml` | Monthly repo-wide over-engineering scan |
 
-## How it fits issue-bench
+## How it fits SEOS
 
 ```text
 needs-spec → spec → ready → agent → draft PR

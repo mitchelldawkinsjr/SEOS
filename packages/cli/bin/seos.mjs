@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { copyFile, mkdir, readFile, writeFile, access } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile, access, cp } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
@@ -26,6 +26,31 @@ const PRESETS = {
     stackFile: "context/presets/generic.md",
   },
 };
+
+const WORKFLOWS = [
+  "issue-auto-triage.yml",
+  "issue-spec.yml",
+  "issue-implement.yml",
+];
+
+const DISPATCH_SCRIPTS = [
+  "dispatch-cursor-agent.mjs",
+  "load-config.mjs",
+  "compose-context.mjs",
+  "generate-issue-spec.sh",
+  "run-issue-implement.sh",
+];
+
+const LABELS = [
+  ["needs-spec", "Request AI acceptance criteria", "C5DEF5"],
+  ["spec-added", "AI-generated acceptance criteria posted", "0E8A16"],
+  ["ready", "Trigger Cursor cloud agent implementation", "FBCA04"],
+  ["agent-working", "Cursor cloud agent implementing", "FBBA04"],
+  ["pr-opened", "Implementation PR opened", "1D76DB"],
+  ["agent-failed", "Cloud agent failed to implement", "D93F0B"],
+  ["no-agent", "Skip automated agent pipeline", "666666"],
+  ["agent-manual", "Require manual ready label before implement", "C2E0C6"],
+];
 
 function parseArgs(argv) {
   const opts = {
@@ -58,10 +83,10 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`issue-bench — human-gated GitHub issue pipeline
+  console.log(`seos — Software Engineering Operating System
 
 Usage:
-  npx issue-bench init [options]
+  npx seos init [options]
 
 Options:
   -y, --yes              Non-interactive defaults
@@ -97,6 +122,11 @@ async function prompt(rl, question, defaultValue) {
 async function ensurePackageJson(targetDir) {
   const pkgPath = join(targetDir, "package.json");
   const cursorSdk = "^1.0.18";
+  const agentScripts = {
+    "agent:compose": "node scripts/compose-context.mjs",
+    "agent:compose:check": "node scripts/compose-context.mjs --check",
+  };
+
   if (await pathExists(pkgPath)) {
     const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
     pkg.dependencies = pkg.dependencies || {};
@@ -104,6 +134,7 @@ async function ensurePackageJson(targetDir) {
       pkg.dependencies["@cursor/sdk"] = cursorSdk;
     }
     if (!pkg.type) pkg.type = "module";
+    pkg.scripts = { ...agentScripts, ...(pkg.scripts || {}) };
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
     return;
   }
@@ -114,6 +145,7 @@ async function ensurePackageJson(targetDir) {
         name: "my-app",
         private: true,
         type: "module",
+        scripts: agentScripts,
         dependencies: {
           "@cursor/sdk": cursorSdk,
         },
@@ -126,7 +158,7 @@ async function ensurePackageJson(targetDir) {
 
 async function copyDispatchScripts(targetDir) {
   await mkdir(join(targetDir, "scripts"), { recursive: true });
-  for (const file of ["dispatch-cursor-agent.mjs", "load-config.mjs"]) {
+  for (const file of DISPATCH_SCRIPTS) {
     await copyFile(
       join(REPO_ROOT, "packages/dispatch", file),
       join(targetDir, "scripts", file)
@@ -135,7 +167,8 @@ async function copyDispatchScripts(targetDir) {
 }
 
 async function copyWorkflows(targetDir) {
-  for (const file of ["issue-spec.yml", "issue-implement.yml"]) {
+  await mkdir(join(targetDir, ".github", "workflows"), { recursive: true });
+  for (const file of WORKFLOWS) {
     await copyFile(
       join(REPO_ROOT, "workflows", file),
       join(targetDir, ".github", "workflows", file)
@@ -143,20 +176,71 @@ async function copyWorkflows(targetDir) {
   }
 }
 
-async function createLabels(repo) {
-  const labels = [
-    ["needs-spec", "Request AI acceptance criteria", "C5DEF5"],
-    ["spec-added", "AI-generated acceptance criteria posted", "0E8A16"],
-    ["ready", "Trigger Cursor cloud agent implementation", "FBCA04"],
-    ["agent-working", "Cursor cloud agent implementing", "FBBA04"],
-    ["pr-opened", "Implementation PR opened", "1D76DB"],
-    ["agent-failed", "Cloud agent failed to implement", "D93F0B"],
-  ];
-  for (const [name, description, color] of labels) {
-    execSync(
-      `gh label create "${name}" --description "${description}" --color "${color}" --repo "${repo}"`,
-      { stdio: "ignore" }
+async function writeFilled(targetPath, sourcePath, vars) {
+  const raw = await readFile(sourcePath, "utf-8");
+  await mkdir(dirname(targetPath), { recursive: true });
+  await writeFile(targetPath, fill(raw, vars));
+}
+
+async function installContextEngine(targetDir, vars) {
+  const gh = join(targetDir, ".github");
+  await mkdir(join(gh, "agent-rules"), { recursive: true });
+  await mkdir(join(gh, "agent-overrides"), { recursive: true });
+  await mkdir(join(gh, "agent-knowledge"), { recursive: true });
+
+  await writeFilled(
+    join(gh, "AGENT.md"),
+    join(REPO_ROOT, "context/agent-guide.base.md"),
+    vars
+  );
+
+  for (const rule of [
+    "architecture-rules.md",
+    "testing-rules.md",
+    "commit-rules.md",
+    "product-rules.md",
+  ]) {
+    await writeFilled(
+      join(gh, "agent-rules", rule),
+      join(REPO_ROOT, "context/rules", rule),
+      vars
     );
+  }
+
+  for (const tail of ["spec-tail.md", "implement-tail.md"]) {
+    await writeFilled(
+      join(gh, "agent-overrides", tail),
+      join(REPO_ROOT, "context/overrides", tail),
+      vars
+    );
+  }
+
+  await writeFilled(
+    join(gh, "agent-manifest.json"),
+    join(REPO_ROOT, "context/agent-manifest.json"),
+    vars
+  );
+
+  await cp(
+    join(REPO_ROOT, "context/knowledge/README.md"),
+    join(gh, "agent-knowledge/README.md")
+  );
+  await cp(
+    join(REPO_ROOT, "context/knowledge/TEMPLATE.md"),
+    join(gh, "agent-knowledge/TEMPLATE.md")
+  );
+}
+
+async function createLabels(repo) {
+  for (const [name, description, color] of LABELS) {
+    try {
+      execSync(
+        `gh label create "${name}" --description "${description}" --color "${color}" --repo "${repo}"`,
+        { stdio: "ignore" }
+      );
+    } catch {
+      // label may already exist
+    }
   }
 }
 
@@ -176,7 +260,7 @@ async function main() {
   let branch = opts.branch;
   let buildCommand = opts.build || preset.build;
   let testCommand = opts.test || preset.test;
-  let createLabels = opts.createLabels;
+  let createLabelsFlag = opts.createLabels;
 
   if (!opts.yes) {
     const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -196,7 +280,7 @@ async function main() {
     buildCommand = await prompt(rl, "Build command", buildCommand);
     testCommand = await prompt(rl, "Test command (optional)", testCommand);
     const labelsAnswer = await prompt(rl, "Create GitHub labels via gh? (y/n)", "n");
-    createLabels = labelsAnswer.toLowerCase().startsWith("y");
+    createLabelsFlag = labelsAnswer.toLowerCase().startsWith("y");
     rl.close();
   } else {
     projectName = projectName || "My App";
@@ -217,28 +301,14 @@ async function main() {
     SCREENSHOT_DIR: "artifacts/issue-{N}/",
   };
 
-  await mkdir(join(targetDir, ".github", "workflows"), { recursive: true });
-
-  const specBase = await readFile(join(REPO_ROOT, "context", "ai-spec.base.md"), "utf-8");
-  const implementBase = await readFile(
-    join(REPO_ROOT, "context", "ai-implement.base.md"),
-    "utf-8"
-  );
   const configTemplate = await readFile(
-    join(REPO_ROOT, "template", ".github", "issue-bench.yml"),
+    join(REPO_ROOT, "context", "seos.yml"),
     "utf-8"
   );
 
+  await mkdir(join(targetDir, ".github", "workflows"), { recursive: true });
   await writeFile(
-    join(targetDir, ".github", "ai-spec-context.md"),
-    fill(specBase, vars)
-  );
-  await writeFile(
-    join(targetDir, ".github", "ai-implement-context.md"),
-    fill(implementBase, vars)
-  );
-  await writeFile(
-    join(targetDir, ".github", "issue-bench.yml"),
+    join(targetDir, ".github", "seos.yml"),
     fill(configTemplate, vars).replace(
       '  test: "{{TEST_COMMAND}}"',
       testCommand ? `  test: "${testCommand}"` : '  test: ""'
@@ -247,9 +317,11 @@ async function main() {
 
   await copyWorkflows(targetDir);
   await copyDispatchScripts(targetDir);
+  await installContextEngine(targetDir, vars);
+  execSync("node scripts/compose-context.mjs", { cwd: targetDir, stdio: "inherit" });
   await ensurePackageJson(targetDir);
 
-  if (createLabels && repo.includes("/")) {
+  if (createLabelsFlag && repo.includes("/")) {
     try {
       await createLabels(repo);
       console.log("Created GitHub labels.");
@@ -259,16 +331,19 @@ async function main() {
   }
 
   console.log(`
-issue-bench initialized in ${targetDir}
+SEOS initialized in ${targetDir}
 
 Next steps:
   1. Add GitHub Actions secrets: OPENAI_API_KEY, CURSOR_API_KEY
   2. Enable Cursor cloud agent access for this repository
   3. Run npm install (installs @cursor/sdk for the dispatch script)
-  4. Create an issue → add needs-spec → review spec → add ready
-  5. Review the draft PR and merge manually
+  4. Open an issue — auto-spec and auto-implement run by default
+  5. Opt out with no-agent / agent-manual, or set AGENT_AUTO_* repo variables to false
+  6. Review the draft PR and merge manually
 
-Docs: https://github.com/mitchelldawkinsjr/issue-bench
+Edit .github/AGENT.md and agent-rules/, then run: npm run agent:compose
+
+Docs: https://github.com/mitchelldawkinsjr/SEOS
 `);
 }
 

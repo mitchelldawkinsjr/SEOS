@@ -1,10 +1,8 @@
-# issue-bench template
+# SEOS template
 
-Human-gated GitHub issue pipeline: OpenAI writes the spec, you add `ready`, a Cursor cloud agent opens a small draft PR.
+Drop-in Software Engineering Operating System: open an issue and the pipeline runs (auto-spec → auto-implement → draft PR). You merge.
 
-**Read first:** [Building a Team of Engineers](https://www.mitchelldawkins.com/blog/team-of-engineers-cursor-agent-pipeline) — the blog post that explains the architecture, a real production run, and how the pieces fit together. This directory is the installable template.
-
-**Tier 1 only** — spec → implement → draft PR → human merge. Optional CI and review-bot recipes live in [docs/recipes/](../docs/recipes/).
+**Read first:** [Building a Team of Engineers](https://www.mitchelldawkins.com/blog/team-of-engineers-cursor-agent-pipeline).
 
 ## Prerequisites
 
@@ -14,9 +12,9 @@ Human-gated GitHub issue pipeline: OpenAI writes the spec, you add `ready`, a Cu
 
 ## Quick start
 
-1. **Use this template** — create a new repo from [github.com/mitchelldawkinsjr/issue-bench](https://github.com/mitchelldawkinsjr/issue-bench) and copy the `template/` directory contents into your repo root (or run `npx issue-bench init` in an existing project).
+1. **Use this template** — create a new repo from [github.com/mitchelldawkinsjr/SEOS](https://github.com/mitchelldawkinsjr/SEOS) and copy the `template/` directory contents into your repo root (or run `npx seos init` in an existing project).
 
-2. **Customize context** — edit `.github/ai-spec-context.md` and `.github/ai-implement-context.md` with your stack. Replace `My App` / `owner/repo` placeholders. See `examples/vite-react/` for snippets.
+2. **Customize context** — edit `.github/AGENT.md` and `.github/agent-rules/`, then run `npm run agent:compose`. Do not edit `ai-*-context.md` by hand (they are generated).
 
 3. **Install dependencies** — run `npm install` (installs `@cursor/sdk` for the dispatch script).
 
@@ -24,17 +22,20 @@ Human-gated GitHub issue pipeline: OpenAI writes the spec, you add `ready`, a Cu
 
 5. **Run the pipeline:**
    - Create a GitHub issue with a clear description
-   - Add label `needs-spec` — wait for spec comment (~30s)
-   - Review acceptance criteria
-   - Add label `ready` — Cursor cloud agent implements
-   - Review draft PR when `pr-opened` appears → merge manually
+   - Spec and implement run automatically (unless opted out)
+   - Review the draft PR when `pr-opened` appears → merge manually
 
-6. **Iterate** — gaps in agent behavior become new items in `ai-implement-context.md`.
+6. **Opt out when needed:**
+   - Label `no-agent` or put `[no-agent]` in the title/body — skip the pipeline
+   - Label `agent-manual` — auto-spec only; you add `ready` yourself
+   - Repo variables `AGENT_AUTO_SPEC_ENABLED=false` / `AGENT_AUTO_READY_ENABLED=false`
+
+7. **Iterate** — gaps in agent behavior become updates to `AGENT.md` or `agent-rules/`, then `npm run agent:compose`.
 
 ## Alternative: CLI init
 
 ```bash
-npx issue-bench init --preset vite-react --yes --name "My App" --repo owner/repo
+npx seos init --preset vite-react --yes --name "My App" --repo owner/repo
 npm install
 ```
 
@@ -42,25 +43,34 @@ npm install
 
 | File | Purpose |
 |------|---------|
-| `.github/workflows/issue-spec.yml` | Stage 1: `needs-spec` → OpenAI spec |
-| `.github/workflows/issue-implement.yml` | Stage 2: `ready` → cloud agent |
-| `.github/ai-spec-context.md` | Repo context for spec generation |
-| `.github/ai-implement-context.md` | Implement agent prompt + checklist |
-| `.github/issue-bench.yml` | Optional dispatch config |
-| `package.json` | `@cursor/sdk` dependency |
-| `scripts/dispatch-cursor-agent.mjs` | Cursor cloud agent dispatch (synced from issue-bench) |
-| `scripts/load-config.mjs` | Optional `issue-bench.yml` config loader |
+| `.github/workflows/issue-auto-triage.yml` | Open issue → auto-spec → auto-implement (chained) |
+| `.github/workflows/issue-spec.yml` | Manual `needs-spec` path (chains implement when auto-ready) |
+| `.github/workflows/issue-implement.yml` | Manual `ready` path (`agent-manual`) |
+| `.github/AGENT.md` | Repository guide (single source of truth) |
+| `.github/agent-rules/` | Composable rule modules |
+| `.github/agent-overrides/` | Role-specific tails |
+| `.github/agent-manifest.json` | Context composition recipes |
+| `.github/agent-knowledge/` | Lesson template + promote-into-guide loop |
+| `.github/ai-*-context.md` | **Generated** agent context (do not edit) |
+| `.github/seos.yml` | Dispatch + automation config |
+| `scripts/compose-context.mjs` | Context Engine |
+| `scripts/generate-issue-spec.sh` | Shared planning script |
+| `scripts/run-issue-implement.sh` | Shared implement dispatch |
+| `scripts/dispatch-cursor-agent.mjs` | Cursor cloud agent dispatch |
+| `scripts/load-config.mjs` | `seos.yml` config loader |
 
 ## Labels
 
 | Label | Applied by |
 |-------|------------|
-| `needs-spec` | Human |
-| `spec-added` | Stage 1 auto |
-| `ready` | Human |
-| `agent-working` | Stage 2 auto |
-| `pr-opened` | Agent |
-| `agent-failed` | Stage 2 on failure |
+| `needs-spec` | Auto on open (or human) |
+| `spec-added` | Planning agent |
+| `ready` | Auto after spec (or human with `agent-manual`) |
+| `agent-working` | Implement dispatch |
+| `pr-opened` | Coding agent |
+| `agent-failed` | Implement on failure |
+| `no-agent` | Human opt-out |
+| `agent-manual` | Human — require manual `ready` |
 
 See [docs/LABELS.md](../docs/LABELS.md) for the full state machine.
 
@@ -68,3 +78,4 @@ See [docs/LABELS.md](../docs/LABELS.md) for the full state machine.
 
 - [Blog: Building a Team of Engineers](https://www.mitchelldawkins.com/blog/team-of-engineers-cursor-agent-pipeline)
 - [Setup guide](../docs/SETUP.md)
+- [Context Engine](../docs/02-architecture/CONTEXT_ENGINE.md)

@@ -10,6 +10,12 @@ const DEFAULTS = {
     agentWorking: "agent-working",
     prOpened: "pr-opened",
     agentFailed: "agent-failed",
+    noAgent: "no-agent",
+    agentManual: "agent-manual",
+  },
+  automation: {
+    autoSpecOnOpen: true,
+    autoReadyAfterSpec: true,
   },
   prompt: {
     postImplementReminders: `- Open a PR with \`Fixes #{N}\` in the body — leave it as a **draft** unless your repo docs say otherwise.
@@ -28,6 +34,8 @@ function parseScalar(value) {
   ) {
     return trimmed.slice(1, -1);
   }
+  if (trimmed === "true") return true;
+  if (trimmed === "false") return false;
   return trimmed;
 }
 
@@ -47,14 +55,39 @@ function parseBlockScalar(lines, startIndex) {
   return contentLines.join("\n").trimEnd();
 }
 
+function sectionAt(lines, index) {
+  for (let i = index; i >= 0; i--) {
+    const t = lines[i].trim();
+    if (!t || t.startsWith("#")) continue;
+    if (!lines[i].startsWith(" ") && t.endsWith(":")) {
+      return t.slice(0, -1);
+    }
+  }
+  return "";
+}
+
+const DEFAULT_CONFIG_PATHS = [".github/seos.yml", ".github/issue-bench.yml"];
+
 /**
- * Minimal YAML parser for issue-bench.yml v1 schema (no external deps).
+ * Minimal YAML parser for the SEOS config v1 schema (no external deps).
+ *
+ * When no explicit path is given, tries `.github/seos.yml` first and falls back
+ * to the legacy `.github/issue-bench.yml` for backward compatibility.
  */
-export async function loadConfig(configPath = ".github/issue-bench.yml") {
+export async function loadConfig(configPath) {
+  const candidates = configPath ? [configPath] : DEFAULT_CONFIG_PATHS;
+
   let raw;
-  try {
-    raw = await readFile(configPath, "utf-8");
-  } catch {
+  for (const candidate of candidates) {
+    try {
+      raw = await readFile(candidate, "utf-8");
+      break;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  if (raw === undefined) {
     return structuredClone(DEFAULTS);
   }
 
@@ -63,34 +96,65 @@ export async function loadConfig(configPath = ".github/issue-bench.yml") {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const section = sectionAt(lines, i - 1);
+
     const projectName = line.match(/^  name:\s*(.+)$/);
-    if (projectName && lines[i - 1]?.trim() === "project:") {
+    if (projectName && section === "project") {
       config.project.name = parseScalar(projectName[1]);
       continue;
     }
     const defaultBranch = line.match(/^  defaultBranch:\s*(.+)$/);
-    if (defaultBranch) {
+    if (defaultBranch && section === "project") {
       config.project.defaultBranch = parseScalar(defaultBranch[1]);
       continue;
     }
     const model = line.match(/^  model:\s*(.+)$/);
-    if (model && lines.slice(0, i).some((l) => l.trim() === "agent:")) {
+    if (model && section === "agent") {
       config.agent.model = parseScalar(model[1]);
       continue;
     }
     const startingRef = line.match(/^  startingRef:\s*(.+)$/);
-    if (startingRef) {
+    if (startingRef && section === "agent") {
       config.agent.startingRef = parseScalar(startingRef[1]);
       config.project.defaultBranch =
         config.agent.startingRef || config.project.defaultBranch;
       continue;
     }
-    if (line.trim() === "postImplementReminders: |") {
+    if (line.trim() === "postImplementReminders: |" && section === "prompt") {
       config.prompt.postImplementReminders = parseBlockScalar(lines, i);
       continue;
     }
-    if (line.trim() === "agentStartedComment: |") {
+    if (line.trim() === "agentStartedComment: |" && section === "prompt") {
       config.prompt.agentStartedComment = parseBlockScalar(lines, i);
+      continue;
+    }
+
+    const labelKeys = {
+      needsSpec: "needsSpec",
+      specAdded: "specAdded",
+      ready: "ready",
+      agentWorking: "agentWorking",
+      prOpened: "prOpened",
+      agentFailed: "agentFailed",
+      noAgent: "noAgent",
+      agentManual: "agentManual",
+    };
+    for (const [yamlKey, configKey] of Object.entries(labelKeys)) {
+      const m = line.match(new RegExp(`^  ${yamlKey}:\\s*(.+)$`));
+      if (m && section === "labels") {
+        config.labels[configKey] = String(parseScalar(m[1]));
+      }
+    }
+
+    const autoSpec = line.match(/^  autoSpecOnOpen:\s*(.+)$/);
+    if (autoSpec && section === "automation") {
+      config.automation.autoSpecOnOpen = Boolean(parseScalar(autoSpec[1]));
+      continue;
+    }
+    const autoReady = line.match(/^  autoReadyAfterSpec:\s*(.+)$/);
+    if (autoReady && section === "automation") {
+      config.automation.autoReadyAfterSpec = Boolean(parseScalar(autoReady[1]));
+      continue;
     }
   }
 

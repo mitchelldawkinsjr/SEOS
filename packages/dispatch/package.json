@@ -1,15 +1,18 @@
 {
-  "name": "@issue-bench/dispatch",
+  "name": "@seos/dispatch",
   "version": "0.2.0",
-  "description": "Cursor cloud agent dispatch for issue-bench pipelines",
+  "description": "Cursor cloud agent dispatch for SEOS (Software Engineering Operating System) pipelines",
   "type": "module",
   "main": "./dispatch-cursor-agent.mjs",
   "bin": {
-    "issue-bench-dispatch": "./dispatch-cursor-agent.mjs"
+    "seos-dispatch": "./dispatch-cursor-agent.mjs"
   },
   "files": [
     "dispatch-cursor-agent.mjs",
     "load-config.mjs",
+    "compose-context.mjs",
+    "generate-issue-spec.sh",
+    "run-issue-implement.sh",
     "README.md"
   ],
   "engines": {
@@ -21,7 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mitchelldawkinsjr/issue-bench.git",
+    "url": "https://github.com/mitchelldawkinsjr/SEOS.git",
     "directory": "packages/dispatch"
   }
 }

@@ -1,29 +1,37 @@
-# @issue-bench/dispatch
+# @seos/dispatch
 
-Source of truth for the Cursor cloud agent dispatch script used by [issue-bench](https://github.com/mitchelldawkinsjr/issue-bench).
+Source of truth for SEOS consumer scripts: Context Engine, config loader, shared pipeline scripts, and Cursor cloud agent dispatch.
 
 ## Consumer install
 
 **Recommended:** copy via CLI or template sync (vendored into `scripts/`):
 
 ```bash
-npx issue-bench init
+npx seos init
 npm install   # installs @cursor/sdk
 ```
 
-Workflows run `node scripts/dispatch-cursor-agent.mjs`.
+| Script | Purpose |
+|--------|---------|
+| `compose-context.mjs` | Compose `ai-*-context.md` from `AGENT.md` + rules + overrides |
+| `load-config.mjs` | Read `.github/seos.yml` (or legacy `issue-bench.yml`) |
+| `generate-issue-spec.sh` | Planning Agent (OpenAI) + optional auto-ready |
+| `run-issue-implement.sh` | Guards + label handoff + dispatch |
+| `dispatch-cursor-agent.mjs` | Cursor cloud agent via `@cursor/sdk` |
+
+Workflows run these from `scripts/`.
 
 ## npm package (optional)
 
 When published to npm:
 
 ```bash
-npm install @issue-bench/dispatch @cursor/sdk
-node node_modules/@issue-bench/dispatch/dispatch-cursor-agent.mjs
+npm install @seos/dispatch @cursor/sdk
+node node_modules/@seos/dispatch/dispatch-cursor-agent.mjs
 ```
 
-Until published, use vendored scripts from `template/scripts/` or `npx issue-bench init`.
+Until published, use vendored scripts from `template/scripts/` or `npx seos init`.
 
 ## Configuration
 
-Optional `.github/issue-bench.yml` in the consumer repo — see [docs/SETUP.md](../../docs/SETUP.md).
+Optional `.github/seos.yml` in the consumer repo (the legacy `.github/issue-bench.yml` filename is still read for backward compatibility) — see [docs/SETUP.md](../../docs/SETUP.md).

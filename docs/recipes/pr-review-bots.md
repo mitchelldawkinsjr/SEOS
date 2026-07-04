@@ -15,7 +15,7 @@ See [Fasted `pr-review.yml`](https://github.com/mitchelldawkinsjr/Fasted/blob/ma
 2. `pr-review.yml` dispatches Bugbot + Ponytail in parallel via Cursor cloud agents
 3. When both complete, workflow runs `gh pr ready` and updates issue labels
 
-## issue-bench.yml customization
+## seos.yml customization
 
 If you adopt this pattern, put bot-specific rules in `prompt.postImplementReminders` so the implement agent does not run `gh pr ready` or swap review labels itself. Example from Fasted:
 

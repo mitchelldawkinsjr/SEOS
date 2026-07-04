@@ -1,0 +1,127 @@
+name: Issue Auto-Triage
+
+# Auto-start the agent pipeline on new issues unless opted out.
+# Chains spec + implement in this workflow — bot-added labels do not trigger other workflows.
+
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-needs-spec:
+    if: vars.AGENT_AUTO_SPEC_ENABLED != 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    outputs:
+      run_pipeline: ${{ steps.triage.outputs.run_pipeline }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply needs-spec unless opted out
+        id: triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+
+          if echo "$TITLE $BODY" | grep -qi '\[no-agent\]'; then
+            echo "Opted out via [no-agent] in title/body."
+            echo "run_pipeline=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LABELS=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels -q '[.labels[].name] | join(",")')
+          if echo "$LABELS" | grep -q 'no-agent'; then
+            echo "run_pipeline=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          gh label create needs-spec --description "Request AI-generated acceptance criteria" --color "FEF2C0" 2>/dev/null || true
+          gh label create no-agent --description "Skip automated agent pipeline" --color "666666" 2>/dev/null || true
+          gh label create agent-manual --description "Require manual ready label before implement" --color "C2E0C6" 2>/dev/null || true
+
+          gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --add-label needs-spec
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "🤖 **Agent pipeline started** — spec generation queued. Add \`no-agent\` or \`agent-manual\` to opt out of auto-implement."
+          echo "run_pipeline=true" >> "$GITHUB_OUTPUT"
+
+  generate-spec:
+    needs: auto-needs-spec
+    if: needs.auto-needs-spec.outputs.run_pipeline == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    outputs:
+      dispatch_implement: ${{ steps.spec.outputs.dispatch_implement }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check OpenAI secret
+        run: |
+          if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
+            echo "::error::OPENAI_API_KEY secret is not configured."
+            exit 1
+          fi
+
+      - name: Generate spec and auto-queue
+        id: spec
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          AGENT_AUTO_READY_ENABLED: ${{ vars.AGENT_AUTO_READY_ENABLED }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/generate-issue-spec.sh
+          RESULT=$(scripts/generate-issue-spec.sh | tail -1)
+          if [ "$RESULT" = "dispatch_implement=true" ]; then
+            echo "dispatch_implement=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "dispatch_implement=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  dispatch-implement:
+    needs: generate-spec
+    if: needs.generate-spec.outputs.dispatch_implement == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dispatch Cursor cloud agent
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          chmod +x scripts/run-issue-implement.sh
+          scripts/run-issue-implement.sh

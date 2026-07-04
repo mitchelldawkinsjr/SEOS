@@ -1,0 +1,19 @@
+%% SEOS State Machine
+%% The lifecycle is the abstraction. GitHub labels are one implementation.
+%% Labels shown in parentheses map onto conceptual engineering states.
+stateDiagram-v2
+    [*] --> Intent: issue created
+    Intent --> Planning: needs-spec (auto)
+    Intent --> Skipped: no-agent
+    Planning --> SpecReady: spec-added
+    SpecReady --> Implementation: ready (auto)
+    SpecReady --> WaitManual: agent-manual
+    WaitManual --> Implementation: human adds ready
+    Implementation --> Working: agent-working
+    Working --> PROpened: pr-opened
+    Working --> Failed: agent-failed
+    Failed --> Implementation: re-add ready
+    PROpened --> Review: CI + review bots (optional)
+    Review --> Deployment: PR merged (human gate)
+    PROpened --> [*]: PR merged (Tier 1 stops here)
+    Skipped --> [*]

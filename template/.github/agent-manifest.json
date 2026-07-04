@@ -1,0 +1,19 @@
+{
+  "agentGuide": ".github/AGENT.md",
+  "rulesDir": ".github/agent-rules",
+  "overridesDir": ".github/agent-overrides",
+  "outputs": {
+    ".github/ai-spec-context.md": {
+      "title": "# My App — Repo Context for Issue Spec Generation",
+      "includeAgentGuide": true,
+      "rules": ["product-rules", "architecture-rules"],
+      "tail": "spec-tail.md"
+    },
+    ".github/ai-implement-context.md": {
+      "title": "# My App — Implementation Agent Context",
+      "includeAgentGuide": true,
+      "rules": ["architecture-rules", "testing-rules", "commit-rules"],
+      "tail": "implement-tail.md"
+    }
+  }
+}
