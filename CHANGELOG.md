@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Mac-offline Cursor fallback smoke: `buildWorkerOfflineHandoff` prompt verified to request draft PR with `Fixes #N`.
+- Mac-offline Cursor fallback smoke (MODE_B_RESMOKE): dry-run `no_changes` handoff and offline `buildWorkerOfflineHandoff` prompt verified to request draft PR with `Fixes #N` and `Do not merge`.
 - **Local-first runtime (Phase 1):**
   - VPS control plane (`packages/control-plane`) — job queue, Mac worker heartbeats, Cursor fallback/stub.
   - Mac worker scaffold (`packages/mac-worker`) — one-job-at-a-time heartbeat/claim/result loop.
