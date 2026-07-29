@@ -167,6 +167,15 @@ Prod install path: `/opt/apps/seos` (Docker Compose). Nginx Proxy Manager has a 
 
 See [`packages/control-plane/README.md`](../../packages/control-plane/README.md).
 
+## Verification
+
+```bash
+npm test
+npm run smoke:control-plane
+```
+
+With no Mac worker registered, the smoke test enqueues a job and expects `fallback_stubbed` with `worker_offline`.
+
 ## Related reading
 
 - [Architecture Overview](OVERVIEW.md)

@@ -21,6 +21,7 @@ const required = [
   "packages/mac-worker/src/worker.mjs",
   "packages/cli/bin/seos.mjs",
   "scripts/deploy-control-plane.sh",
+  "scripts/smoke-control-plane.sh",
   "docs/02-architecture/LOCAL_FIRST_RUNTIME.md",
   "context/agent-guide.base.md",
   "context/agent-manifest.json",

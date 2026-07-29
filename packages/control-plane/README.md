@@ -17,6 +17,12 @@ CONTROL_PLANE_TOKEN=dev node src/server.mjs
 curl -s http://127.0.0.1:8787/healthz
 ```
 
+From the repo root, run the Mac-offline fallback smoke test:
+
+```bash
+npm run smoke:control-plane
+```
+
 ## Deploy to VPS
 
 From the repo root (requires SSH to the prod VPS):
