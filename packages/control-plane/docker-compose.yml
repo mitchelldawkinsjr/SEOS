@@ -8,7 +8,11 @@ services:
     container_name: seos-control-plane
     restart: unless-stopped
     ports:
-      - "${SEOS_PUBLISH_PORT:-8787}:8787"
+      # Default publishes on all interfaces so GitHub Actions can reach the
+      # control plane before a reverse-proxy hostname exists. Prefer binding
+      # loopback + HTTPS proxy in production:
+      #   SEOS_PUBLISH_BIND=127.0.0.1
+      - "${SEOS_PUBLISH_BIND:-0.0.0.0}:${SEOS_PUBLISH_PORT:-8787}:8787"
     environment:
       PORT: "8787"
       SEOS_DATA_DIR: /data

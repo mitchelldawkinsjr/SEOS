@@ -19,13 +19,23 @@ curl -s http://127.0.0.1:8787/healthz
 
 ## Deploy to VPS
 
-From the repo root (requires `ssh vps`):
+From the repo root (requires SSH to the prod VPS):
 
 ```bash
+# Tailscale Host "vps" (may prompt for browser auth):
+./scripts/deploy-control-plane.sh
+
+# Or public IP + deploy key (works from this laptop without Tailscale SSH):
+SEOS_SSH_HOST=82.25.91.63 \
+SEOS_SSH_IDENTITY=~/.ssh/github_actions_deploy \
 ./scripts/deploy-control-plane.sh
 ```
 
 Installs under `/opt/apps/seos` with Docker Compose. Does not modify Fasted.
+
+Prod consumer URL (until `seos.360web.cloud` DNS CNAME exists):
+
+`CONTROL_PLANE_URL=http://82.25.91.63:8787`
 
 ## Auth
 

@@ -13,22 +13,39 @@ if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S /run/host-services/ssh-auth.sock ]; then
   export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
 fi
 
-if ! ssh -o BatchMode=yes -o ConnectTimeout=15 "$REMOTE_HOST" 'echo ok' >/dev/null; then
+# Optional deploy key (this laptop: github_actions_deploy works on the prod VPS;
+# Tailscale SSH to Host "vps" may require interactive browser auth).
+SSH_IDENTITY="${SEOS_SSH_IDENTITY:-}"
+SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
+RSYNC_RSH="ssh -o BatchMode=yes -o ConnectTimeout=15"
+if [ -n "$SSH_IDENTITY" ]; then
+  SSH_OPTS+=(-o IdentitiesOnly=yes -i "$SSH_IDENTITY")
+  RSYNC_RSH="ssh -o BatchMode=yes -o ConnectTimeout=15 -o IdentitiesOnly=yes -i ${SSH_IDENTITY}"
+fi
+
+ssh_vps() {
+  ssh "${SSH_OPTS[@]}" "$REMOTE_HOST" "$@"
+}
+
+if ! ssh_vps 'echo ok' >/dev/null; then
   echo "ERROR: cannot ssh to ${REMOTE_HOST}."
   echo "Ensure ~/.ssh/config has:"
   echo "  Host vps"
   echo "    HostName <your-vps-ip>"
   echo "    User root   # or ubuntu"
   echo "    IdentityFile ~/.ssh/<key-authorized-on-vps>"
+  echo "Or run with:"
+  echo "  SEOS_SSH_HOST=82.25.91.63 SEOS_SSH_IDENTITY=~/.ssh/github_actions_deploy $0"
   echo "Or load that key into ssh-agent before running this script."
   exit 1
 fi
 
 echo "Deploying SEOS control plane to ${REMOTE_HOST}:${DEPLOY_DIR}"
 
-ssh "$REMOTE_HOST" "mkdir -p '${DEPLOY_DIR}/data'"
+ssh_vps "mkdir -p '${DEPLOY_DIR}/data'"
 
 rsync -avz --delete \
+  -e "$RSYNC_RSH" \
   --exclude 'node_modules' \
   --exclude 'data' \
   --exclude '.env' \
@@ -36,7 +53,7 @@ rsync -avz --delete \
   "${SRC}/" "${REMOTE_HOST}:${DEPLOY_DIR}/"
 
 # Preserve existing .env; seed from example if missing
-ssh "$REMOTE_HOST" "
+ssh_vps "
   set -euo pipefail
   cd '${DEPLOY_DIR}'
   if [ ! -f .env ]; then
@@ -60,6 +77,6 @@ ssh "$REMOTE_HOST" "
 
 echo ""
 echo "Done. From a consumer repo, set:"
-echo "  CONTROL_PLANE_URL=http://<vps-host>:8787   # or https via reverse proxy"
+echo "  CONTROL_PLANE_URL=http://<vps-host>:8787   # or https://seos.360web.cloud after DNS CNAME"
 echo "  CONTROL_PLANE_TOKEN=<from ${DEPLOY_DIR}/.env>"
 echo "  agents.implementation.strategy: local-first"
