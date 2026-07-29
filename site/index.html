@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SEOS — Software Engineering Operating System</title>
+    <meta
+      name="description"
+      content="SEOS coordinates specialized AI engineering agents from idea to production — while humans keep the gates that matter. Open source. Install into any repo."
+    />
+    <meta property="og:title" content="SEOS — Software Engineering Operating System" />
+    <meta
+      property="og:description"
+      content="Open an issue. Get a draft PR. You merge. Interactive explainer for the open-source engineering OS."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <div class="grid-wash" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="SEOS home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">SEOS</span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="#pipeline">Pipeline</a>
+        <a href="#layers">Layers</a>
+        <a href="#topology">Topology</a>
+        <a href="#install">Install</a>
+      </nav>
+      <a
+        class="btn btn-ghost"
+        href="https://github.com/mitchelldawkinsjr/SEOS"
+        rel="noopener"
+        >GitHub</a
+      >
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="eyebrow">Open source · MIT</p>
+        <h1 class="brand-hero">SEOS</h1>
+        <p class="lede">
+          The operating system for AI engineering teams — from issue to draft PR,
+          with humans still owning judgment.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#pipeline">Walk the pipeline</a>
+          <a
+            class="btn btn-secondary"
+            href="https://github.com/mitchelldawkinsjr/SEOS#install-seos"
+            rel="noopener"
+            >Install</a
+          >
+        </div>
+        <p class="hero-flow" aria-hidden="true">
+          open issue → needs-spec → spec → ready → agent → draft PR →
+          <strong>you merge</strong>
+        </p>
+      </section>
+
+      <section class="panel" id="pipeline" aria-labelledby="pipeline-title">
+        <div class="section-head">
+          <h2 id="pipeline-title">Interactive pipeline</h2>
+          <p>
+            Toggle how a real run routes. Step through each state. This is the
+            same model that ships in the repo — labels are just how GitHub
+            renders it.
+          </p>
+        </div>
+
+        <div class="controls" role="group" aria-label="Pipeline options">
+          <label class="control">
+            <span>Strategy</span>
+            <button
+              type="button"
+              class="switch"
+              id="strategy-toggle"
+              aria-pressed="true"
+              data-on="local-first"
+              data-off="cursor-only"
+            >
+              <span class="switch-knob"></span>
+              <span class="switch-label" id="strategy-label">local-first</span>
+            </button>
+          </label>
+          <label class="control">
+            <span>Ready gate</span>
+            <button
+              type="button"
+              class="switch"
+              id="gate-toggle"
+              aria-pressed="false"
+              data-on="agent-manual"
+              data-off="auto-ready"
+            >
+              <span class="switch-knob"></span>
+              <span class="switch-label" id="gate-label">auto-ready</span>
+            </button>
+          </label>
+          <label class="control">
+            <span>Mac worker</span>
+            <button
+              type="button"
+              class="switch"
+              id="mac-toggle"
+              aria-pressed="true"
+              data-on="healthy"
+              data-off="offline"
+            >
+              <span class="switch-knob"></span>
+              <span class="switch-label" id="mac-label">healthy</span>
+            </button>
+          </label>
+        </div>
+
+        <ol class="pipeline" id="pipeline-track" aria-label="Pipeline steps"></ol>
+
+        <div class="step-nav">
+          <button type="button" class="btn btn-secondary" id="btn-back" disabled>
+            Back
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-next">
+            Next step
+          </button>
+          <button type="button" class="btn btn-ghost" id="btn-reset">Reset</button>
+          <p class="step-count" id="step-count">Step 1 / 7</p>
+        </div>
+
+        <div class="progress" aria-hidden="true">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="detail-grid">
+          <article class="detail-card" id="step-detail">
+            <header>
+              <h3 id="step-title">Intent</h3>
+              <span class="pill" id="step-actor">human</span>
+            </header>
+            <div class="gate-banner" id="gate-banner" hidden></div>
+            <div class="detail-block">
+              <h4>Concept</h4>
+              <p id="step-concept"></p>
+            </div>
+            <div class="detail-block">
+              <h4>In a real install</h4>
+              <p id="step-irl"></p>
+            </div>
+            <div class="route-banner" id="route-banner" hidden></div>
+          </article>
+
+          <aside class="detail-card muted">
+            <h3>What your toggles change</h3>
+            <ul class="toggle-effects" id="toggle-effects"></ul>
+            <p class="footnote">
+              Bot-applied labels with <code>GITHUB_TOKEN</code> do not fire other
+              <code>on: labeled</code> workflows — so SEOS chains planning →
+              implement inside one workflow.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel" id="layers" aria-labelledby="layers-title">
+        <div class="section-head">
+          <h2 id="layers-title">Seven layers</h2>
+          <p>
+            Framework concerns stay reusable. Product logic stays in the
+            consuming repo. That dividing line is the design.
+          </p>
+        </div>
+        <div class="layers" id="layers-grid"></div>
+      </section>
+
+      <section class="panel" id="topology" aria-labelledby="topology-title">
+        <div class="section-head">
+          <h2 id="topology-title">How a run moves</h2>
+          <p>
+            GitHub is the event bus. Agents do bounded work. Optional local-first
+            routing sends implement jobs to a control plane and Mac worker, with
+            Cursor Cloud as fallback. You always merge.
+          </p>
+        </div>
+        <div class="topo" id="topo-nodes" role="list"></div>
+        <article class="detail-card topo-detail" id="topo-detail">
+          <header>
+            <h3 id="topo-title-el">GitHub Actions</h3>
+            <span class="pill" id="topo-role">Event source</span>
+          </header>
+          <p id="topo-body"></p>
+        </article>
+      </section>
+
+      <section class="panel gates-panel" aria-labelledby="gates-title">
+        <div class="section-head">
+          <h2 id="gates-title">Humans keep the gates</h2>
+          <p>Autonomy without accountability is not the goal.</p>
+        </div>
+        <div class="gates">
+          <article>
+            <span class="gate-num">0</span>
+            <h3>Open the issue</h3>
+            <p>Product prioritization. Opt out with <code>no-agent</code>.</p>
+          </article>
+          <article>
+            <span class="gate-num">1</span>
+            <h3>Optional ready pause</h3>
+            <p>
+              Default auto-ready. Restore a human pause with
+              <code>agent-manual</code>.
+            </p>
+          </article>
+          <article class="gate-emphasis">
+            <span class="gate-num">2</span>
+            <h3>You merge</h3>
+            <p>Draft PR only. Agents never ship to main.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel install" id="install" aria-labelledby="install-title">
+        <div class="section-head">
+          <h2 id="install-title">Drop it into a repo</h2>
+          <p>
+            SEOS is open source infrastructure you install — not a black-box
+            cloud that owns your engineering judgment.
+          </p>
+        </div>
+        <pre class="install-code" tabindex="0"><code>npx seos init
+npm install
+# add OPENAI_API_KEY + CURSOR_API_KEY to Actions secrets
+# open an issue — the pipeline starts</code></pre>
+        <div class="hero-actions">
+          <a
+            class="btn btn-primary"
+            href="https://github.com/mitchelldawkinsjr/SEOS"
+            rel="noopener"
+            >View on GitHub</a
+          >
+          <a
+            class="btn btn-secondary"
+            href="https://github.com/mitchelldawkinsjr/SEOS/blob/main/docs/SETUP.md"
+            rel="noopener"
+            >Setup guide</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        <strong>SEOS</strong> — Software Engineering Operating System ·
+        <a href="https://github.com/mitchelldawkinsjr/SEOS/blob/main/LICENSE"
+          >MIT</a
+        >
+      </p>
+      <p class="footer-meta">
+        Proven on
+        <a href="https://github.com/mitchelldawkinsjr/Fasted">Fasted</a> · Docs in
+        <a href="https://github.com/mitchelldawkinsjr/SEOS/tree/main/docs"
+          >/docs</a
+        >
+      </p>
+    </footer>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

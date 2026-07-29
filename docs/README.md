@@ -6,6 +6,7 @@ This documentation teaches the operating model before the mechanics: **philosoph
 
 ## Start here
 
+0. **[Interactive explainer](https://mitchelldawkinsjr.github.io/SEOS/)** — step through the pipeline in the browser (source: [`site/`](../site/)).
 1. [Why SEOS Exists](00-vision/WHY_SEOS_EXISTS.md) — the problem and the outcome.
 2. [What Is SEOS?](01-concepts/WHAT_IS_SEOS.md) — the operating-system model.
 3. [Engineering Lifecycle](01-concepts/ENGINEERING_LIFECYCLE.md) — the core abstraction.
