@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Deploy SEOS control plane to the prod VPS via `ssh vps`.
-# Installs under /opt/apps/seos — does not touch Fasted (/opt/apps/fasted-calendar).
+# Deploy SEOS control plane to a VPS via SSH (default host alias: vps).
+# Installs under /opt/apps/seos — does not modify other apps on the host.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,8 +13,7 @@ if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S /run/host-services/ssh-auth.sock ]; then
   export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
 fi
 
-# Optional deploy key (this laptop: github_actions_deploy works on the prod VPS;
-# Tailscale SSH to Host "vps" may require interactive browser auth).
+# Optional deploy key path (SEOS_SSH_IDENTITY). Prefer ssh-agent when possible.
 SSH_IDENTITY="${SEOS_SSH_IDENTITY:-}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 RSYNC_RSH="ssh -o BatchMode=yes -o ConnectTimeout=15"
@@ -31,11 +30,11 @@ if ! ssh_vps 'echo ok' >/dev/null; then
   echo "ERROR: cannot ssh to ${REMOTE_HOST}."
   echo "Ensure ~/.ssh/config has:"
   echo "  Host vps"
-  echo "    HostName <your-vps-ip>"
+  echo "    HostName <your-vps-host>"
   echo "    User root   # or ubuntu"
   echo "    IdentityFile ~/.ssh/<key-authorized-on-vps>"
   echo "Or run with:"
-  echo "  SEOS_SSH_HOST=82.25.91.63 SEOS_SSH_IDENTITY=~/.ssh/github_actions_deploy $0"
+  echo "  SEOS_SSH_HOST=<your-vps-host> SEOS_SSH_IDENTITY=~/.ssh/<key-authorized-on-vps> $0"
   echo "Or load that key into ssh-agent before running this script."
   exit 1
 fi
@@ -77,6 +76,6 @@ ssh_vps "
 
 echo ""
 echo "Done. From a consumer repo, set:"
-echo "  CONTROL_PLANE_URL=http://<vps-host>:8787   # or https://seos.360web.cloud after DNS CNAME"
+echo "  CONTROL_PLANE_URL=https://seos.example.com   # or http://<vps-host>:8787"
 echo "  CONTROL_PLANE_TOKEN=<from ${DEPLOY_DIR}/.env>"
 echo "  agents.implementation.strategy: local-first"

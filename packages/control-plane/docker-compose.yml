@@ -1,5 +1,5 @@
 # SEOS control plane — deploy under /opt/apps/seos on the VPS.
-# Isolated from Fasted (/opt/apps/fasted-calendar). Does not join fasted-network.
+# Keep this stack isolated from other apps on the same host.
 name: seos-control-plane
 
 services:

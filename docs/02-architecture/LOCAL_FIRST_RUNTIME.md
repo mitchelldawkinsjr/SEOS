@@ -157,13 +157,13 @@ On escalation, Cursor continues from local work:
 ## Deploy
 
 ```bash
-# Host "vps" in ~/.ssh/config (Tailscale may require browser auth), or:
-SEOS_SSH_HOST=82.25.91.63 \
-SEOS_SSH_IDENTITY=~/.ssh/github_actions_deploy \
+# Host "vps" in ~/.ssh/config, or:
+SEOS_SSH_HOST=<your-vps-host> \
+SEOS_SSH_IDENTITY=~/.ssh/<key-authorized-on-vps> \
 ./scripts/deploy-control-plane.sh
 ```
 
-Prod install path: `/opt/apps/seos` (Docker Compose). Nginx Proxy Manager has a host for `seos.360web.cloud` → `:8787`; add a DNS CNAME (alias of `360web.cloud`) before relying on HTTPS. Until then, consumers can use `CONTROL_PLANE_URL=http://82.25.91.63:8787`.
+Prod install path: `/opt/apps/seos` (Docker Compose). Point `CONTROL_PLANE_URL` at your control plane (HTTP on `:8787`, or HTTPS behind your reverse proxy / DNS).
 
 See [`packages/control-plane/README.md`](../../packages/control-plane/README.md).
 
