@@ -4,7 +4,7 @@
 
 Drop it into a repo, run the install, and opening an issue starts the pipeline: auto-spec → auto-implement → draft PR → **you merge**.
 
-> New here? Read the narrative first: **[Building a Team of Engineers: From GitHub Issues to Small, Reversible PRs](https://www.mitchelldawkins.com/blog/team-of-engineers-cursor-agent-pipeline)**. Then read **[docs/](docs/)** for the operating model, and this README for how to install it.
+> **New here?** Walk the interactive explainer: **[How SEOS works](https://mitchelldawkinsjr.github.io/SEOS/)** — then read the narrative **[Building a Team of Engineers](https://www.mitchelldawkins.com/blog/team-of-engineers-cursor-agent-pipeline)** and **[docs/](docs/)** for the operating model.
 
 ## The operating model (read this before installing)
 
@@ -41,7 +41,7 @@ Open issue → needs-spec → OpenAI spec → ready → Cursor cloud agent → d
 
 Jobs are **chained in one workflow** (bot-added labels do not trigger other workflows). Manual `ready` still works via `issue-implement.yml`.
 
-Tier 2 (CI gates, Bugbot/Ponytail review, deploy health) is documented in [docs/recipes/](docs/recipes/) and proven on [Fasted](docs/06-case-studies/FASTED.md).
+Tier 2 (CI gates, Bugbot/Ponytail/Intent review, deploy health) is documented in [docs/recipes/](docs/recipes/) and proven on [Fasted](docs/06-case-studies/FASTED.md).
 
 ## Install SEOS
 
@@ -76,6 +76,7 @@ The framework supplies the engineering workflow. See [docs/SETUP.md](docs/SETUP.
 
 | Path | Purpose |
 |------|---------|
+| [`site/`](site/) | Public interactive explainer ([GitHub Pages](https://mitchelldawkinsjr.github.io/SEOS/)) |
 | [`docs/`](docs/) | SEOS operating model, architecture, agent roles, guides, reference |
 | [`template/`](template/) | Consumer-facing template (copy into your app) |
 | [`packages/dispatch`](packages/dispatch/) | `@seos/dispatch` — compose, load-config, implement router, Cursor dispatch |
@@ -96,6 +97,7 @@ npm test
 
 ## Learn more
 
+- **[Interactive explainer](https://mitchelldawkinsjr.github.io/SEOS/)** — how SEOS works in the browser
 - [Documentation home](docs/README.md) — start with the operating model
 - [Blog: Building a Team of Engineers](https://www.mitchelldawkins.com/blog/team-of-engineers-cursor-agent-pipeline)
 - [Setup guide](docs/SETUP.md) · [Labels](docs/LABELS.md) · [Roadmap](docs/00-vision/ROADMAP.md)
