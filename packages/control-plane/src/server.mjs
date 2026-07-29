@@ -98,6 +98,16 @@ async function maybeAssignOrFallback(job) {
   return job;
 }
 
+function resolveFallbackStartingRef(job, result = {}) {
+  const fallback = job.meta?.defaultBranch || "main";
+  if (!result.branch) return fallback;
+  if (result.status === "no_changes") return fallback;
+  if (!result.changedFiles && !(result.changedFileList || []).length) {
+    return fallback;
+  }
+  return result.branch;
+}
+
 function buildOfflineHandoffPrompt(job) {
   const attached = job.meta?.implementPrompt;
   if (typeof attached === "string" && attached.trim()) {
@@ -225,7 +235,8 @@ const server = createServer(async (req, res) => {
 
       if (status !== "success" && shouldFallback(status, body.fallbackRecommended)) {
         const handoff = {
-          startingRef: body.branch || null,
+          // Dry / no_changes must not invent a missing branch for Cursor.
+          startingRef: resolveFallbackStartingRef(job, body),
           prompt: buildResultHandoffPrompt(job, body),
           summary: body.summary || status,
         };

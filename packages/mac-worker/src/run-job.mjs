@@ -25,7 +25,8 @@ export async function runLocalJob(job, env = process.env) {
       model,
       attempts: 1,
       changedFiles: 0,
-      branch,
+      // No local branch was created — Cursor fallback must use defaultBranch.
+      branch: null,
       failedCommands: [],
       changedFileList: [],
       diff: "",

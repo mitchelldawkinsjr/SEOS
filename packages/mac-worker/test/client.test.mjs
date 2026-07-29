@@ -36,5 +36,5 @@ test("runLocalJob dry returns no_changes + fallback", async () => {
   );
   assert.equal(result.status, "no_changes");
   assert.equal(result.fallbackRecommended, true);
-  assert.equal(result.branch, "seos/issue-9");
+  assert.equal(result.branch, null);
 });
