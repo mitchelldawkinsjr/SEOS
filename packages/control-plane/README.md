@@ -1,13 +1,13 @@
 # @seos/control-plane
 
-Always-on SEOS dispatcher for local-first routing.
+Always-on SEOS dispatcher for local-first routing. Run it on any host you choose (VPS, cloud VM, lab box). Skip it entirely when `agents.implementation.strategy` is `cursor-only` (the default).
 
 ## Role
 
 - Accept implement jobs from GitHub Actions
-- Track Mac worker heartbeats
-- Assign jobs when the Mac is healthy
-- Escalate to Cursor Cloud (or stub) when the Mac is offline or returns a fallback status
+- Track worker heartbeats (any attached machine)
+- Assign jobs when a worker is healthy
+- Escalate to Cursor Cloud (or stub) when workers are offline or return a fallback status
 
 ## Run locally
 
@@ -17,26 +17,26 @@ CONTROL_PLANE_TOKEN=dev node src/server.mjs
 curl -s http://127.0.0.1:8787/healthz
 ```
 
-## Deploy to VPS
+## Deploy (any host)
 
-From the repo root (requires SSH to the prod VPS):
+From the repo root (requires SSH to the host you picked):
 
 ```bash
 # SSH host alias from ~/.ssh/config (e.g. Host vps):
 ./scripts/deploy-control-plane.sh
 
 # Or explicit host + deploy key:
-SEOS_SSH_HOST=<your-vps-host> \
-SEOS_SSH_IDENTITY=~/.ssh/<key-authorized-on-vps> \
+SEOS_SSH_HOST=<your-host> \
+SEOS_SSH_IDENTITY=~/.ssh/<key-authorized-on-host> \
 ./scripts/deploy-control-plane.sh
 ```
 
-Installs under `/opt/apps/seos` with Docker Compose. Does not modify other apps on the host.
+Installs under `/opt/apps/seos` with Docker Compose by default. Does not modify other apps on the host.
 
 Consumer URL example:
 
 `CONTROL_PLANE_URL=https://seos.example.com`  
-(or `http://<your-vps-host>:8787` during bootstrap)
+(or `http://<your-host>:8787` during bootstrap)
 
 ## Auth
 

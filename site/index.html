@@ -108,7 +108,7 @@
             </button>
           </label>
           <label class="control">
-            <span>Mac worker</span>
+            <span>Worker</span>
             <button
               type="button"
               class="switch"
@@ -185,9 +185,11 @@
         <div class="section-head">
           <h2 id="topology-title">How a run moves</h2>
           <p>
-            GitHub is the event bus. Agents do bounded work. Optional local-first
-            routing sends implement jobs to a control plane and Mac worker, with
-            Cursor Cloud as fallback. You always merge.
+            GitHub is the event bus. Agents do bounded work. Default path is
+            Cursor Cloud only — no control plane, no local worker. Opt into
+            local-first to route through <em>your</em> control-plane host and
+            <em>any</em> worker machine you attach; Cursor remains the fallback.
+            You always merge.
           </p>
         </div>
         <div class="topo" id="topo-nodes" role="list"></div>

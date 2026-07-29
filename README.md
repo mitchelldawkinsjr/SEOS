@@ -80,8 +80,8 @@ The framework supplies the engineering workflow. See [docs/SETUP.md](docs/SETUP.
 | [`docs/`](docs/) | SEOS operating model, architecture, agent roles, guides, reference |
 | [`template/`](template/) | Consumer-facing template (copy into your app) |
 | [`packages/dispatch`](packages/dispatch/) | `@seos/dispatch` — compose, load-config, implement router, Cursor dispatch |
-| [`packages/control-plane`](packages/control-plane/) | VPS local-first dispatcher (queue, worker health, Cursor fallback) |
-| [`packages/mac-worker`](packages/mac-worker/) | Mac local worker scaffold (heartbeat → claim → harness → result) |
+| [`packages/control-plane`](packages/control-plane/) | Optional local-first dispatcher (any host; queue, worker health, Cursor fallback) |
+| [`packages/mac-worker`](packages/mac-worker/) | Reference worker client for any attached machine (heartbeat → claim → harness → result) |
 | [`packages/cli`](packages/cli/) | `npx seos init` |
 | [`workflows/`](workflows/) | Canonical workflow YAML (auto-triage, spec, implement) |
 | [`context/`](context/) | Context Engine sources (guide, rules, overrides, manifest, presets) |

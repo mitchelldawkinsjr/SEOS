@@ -1,16 +1,18 @@
 # @seos/mac-worker
 
-Local SEOS worker for the MacBook Pro (M1 Max). Registers with the VPS control plane, claims one job at a time, runs a local harness, and posts structured results.
+Reference **worker client** for SEOS local-first routing. The package name reflects the first proving ground (a Mac), but the process runs on **any system you want tied into SEOS** — Mac, Linux, workstation, lab box.
+
+It registers with *your* control plane (any host — or unused when strategy is `cursor-only`), claims one job at a time, runs a local harness, and posts structured results.
 
 ## Setup
 
-1. Install [Ollama](https://ollama.com) and pull `qwen2.5-coder:7b`.
+1. Install a local model runtime if your harness needs one (e.g. [Ollama](https://ollama.com) + `qwen2.5-coder:7b`).
 2. Point the worker at your control plane:
 
 ```bash
-export CONTROL_PLANE_URL=https://seos.example.com   # or http://VPS:8787
+export CONTROL_PLANE_URL=https://seos.example.com   # or http://<control-plane-host>:8787
 export CONTROL_PLANE_TOKEN=...
-export SEOS_WORKER_ID=mac-m1-max
+export SEOS_WORKER_ID=my-worker-1   # any id you choose
 cd packages/mac-worker
 npm start
 ```

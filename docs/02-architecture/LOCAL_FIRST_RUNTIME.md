@@ -1,15 +1,15 @@
 # Local-First Runtime
 
-> Status: **Partial (Phase 1)**. The Agent Runtime can route implementation to a local Mac worker when healthy, and fall back to Cursor Cloud with branch-preserving handoff. GitHub Actions remains the event source; the VPS hosts the control plane.
+> Status: **Partial (Phase 1)**. Default implement strategy is **cursor-only** (no control plane, no local worker). Opt into **local-first** to route through a control plane on *any* host you choose and a worker on *any* machine you attach; Cursor Cloud remains the fallback with branch-preserving handoff. GitHub Actions remains the event source.
 
 ## Responsibility matrix
 
 | Component | Primary responsibility |
 |-----------|------------------------|
 | GitHub Actions | Issue/label events, concurrency, calling the router |
-| VPS control plane | Queue, worker health, dispatch, retries, Cursor fallback |
-| MacBook worker | Local planning/coding/testing, draft PR preparation |
-| Cursor Cloud | Mac offline, timeouts, validation failure, complex/high-risk work |
+| Control plane *(optional)* | Queue, worker health, dispatch, retries, Cursor fallback — run on a VPS, cloud VM, lab box, or skip entirely via `cursor-only` |
+| Worker *(optional)* | Local planning/coding/testing, draft PR preparation — any system you tie into SEOS (Mac, Linux, workstation, …) |
+| Cursor Cloud | Default path, or fallback when workers are offline / timed out / failed validation |
 | Human | Review and merge approval |
 
 ## Flow
@@ -20,23 +20,24 @@ flowchart TD
   gha[GitHub_Actions]
   router[dispatch_router]
   strategy{strategy_local_first}
-  vps[VPS_control_plane]
-  macHealthy{Mac_worker_healthy}
-  mac[Mac_worker]
+  plane[Control_plane_any_host]
+  workerHealthy{Worker_healthy}
+  worker[Attached_worker]
   cursor[Cursor_Cloud]
   draft[Draft_PR]
   human[Human_merge]
 
   ready --> gha --> router --> strategy
-  strategy -->|no| cursor
-  strategy -->|yes| vps --> macHealthy
-  macHealthy -->|yes| mac
-  macHealthy -->|no| cursor
-  mac -->|success| draft
-  mac -->|fallback_statuses| cursor
+  strategy -->|no_cursor_only| cursor
+  strategy -->|yes| plane --> workerHealthy
+  workerHealthy -->|yes| worker
+  workerHealthy -->|no| cursor
+  worker -->|success| draft
+  worker -->|fallback_statuses| cursor
   cursor --> draft --> human
 ```
 
+**Bypass:** with `agents.implementation.strategy: cursor-only` (the default), the router never calls the control plane — worker and control-plane hosts are unused.
 ## Configuration
 
 Default remains **cursor-only**. Opt in via `.github/seos.yml`:
@@ -68,29 +69,31 @@ Secrets / env for Actions and the control plane:
 - `CURSOR_API_KEY` (fallback provider)
 - `GH_TOKEN` / GitHub token with issue + PR permissions
 
-## Control plane (VPS)
+## Control plane (any host)
 
-Deployed to `/opt/apps/seos` (Docker Compose). Endpoints:
+Optional. Run on a VPS, cloud VM, on-prem box — wherever you want the queue. Typical install path: `/opt/apps/seos` (Docker Compose). Endpoints:
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET` | `/healthz` | Liveness |
 | `POST` | `/v1/jobs` | Enqueue implement job (from GHA) |
 | `GET` | `/v1/jobs/:id` | Job status |
-| `POST` | `/v1/workers/heartbeat` | Mac registration + health |
+| `POST` | `/v1/workers/heartbeat` | Worker registration + health |
 | `GET` | `/v1/workers` | List workers |
 | `POST` | `/v1/workers/:id/claim` | Claim next queued job |
 | `POST` | `/v1/jobs/:id/result` | Structured agent result |
 
 Auth: `Authorization: Bearer <CONTROL_PLANE_TOKEN>`.
 
+Skip this entirely when `strategy: cursor-only`.
+
 ## Worker registration
 
-The Mac registers with declared capabilities:
+Any machine you attach registers with declared capabilities (example id is illustrative — use your own):
 
 ```yaml
 worker:
-  id: mac-m1-max
+  id: mac-m1-max   # or linux-lab-1, workstation-a, …
   capabilities:
     - local-llm
     - planning
@@ -102,7 +105,7 @@ worker:
     - 64gb-unified-memory
 ```
 
-Phase 1 concurrency: **one** heavy local job at a time (`seos-mac-worker`).
+Phase 1 concurrency: **one** heavy local job at a time per worker process (`packages/mac-worker` is the reference client; the host need not be a Mac).
 
 ## Structured agent results
 
@@ -131,7 +134,7 @@ Recommended statuses:
 
 Escalate when:
 
-- Mac worker offline / heartbeat stale
+- Worker offline / heartbeat stale
 - Local model unavailable
 - Local timeout
 - No valid changes
@@ -150,8 +153,8 @@ On escalation, Cursor continues from local work:
 
 | Package | Role |
 |---------|------|
-| [`packages/control-plane`](../../packages/control-plane/) | VPS dispatcher service |
-| [`packages/mac-worker`](../../packages/mac-worker/) | Local worker heartbeat + job loop |
+| [`packages/control-plane`](../../packages/control-plane/) | Control-plane dispatcher (any host) |
+| [`packages/mac-worker`](../../packages/mac-worker/) | Reference worker client (heartbeat → claim → harness → result) |
 | [`packages/dispatch`](../../packages/dispatch/) | Router, Cursor provider, handoff builder |
 
 ## Deploy

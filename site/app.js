@@ -26,14 +26,14 @@ const STEPS = [
     id: "route",
     label: "Route",
     conceptual: "The Agent Runtime chooses where implementation runs.",
-    irl: "packages/dispatch reads seos.yml. cursor-only goes straight to Cursor Cloud. local-first posts a job to the VPS control plane.",
+    irl: "packages/dispatch reads seos.yml. cursor-only (default) goes straight to Cursor Cloud and skips any control plane or worker. local-first posts a job to whatever host runs your control plane.",
     actor: "system",
   },
   {
     id: "implement",
     label: "Implement",
     conceptual: "The Coding Agent produces a small, reversible change.",
-    irl: "Local-first: VPS queues → Mac worker claims → local model codes and tests. Fallback statuses escalate to Cursor Cloud with a branch-preserving handoff.",
+    irl: "Local-first: your control plane queues → any attached worker claims → local model codes and tests. Fallback statuses escalate to Cursor Cloud with a branch-preserving handoff.",
     actor: "agent",
   },
   {
@@ -109,23 +109,23 @@ const TOPO = [
   {
     id: "vps",
     title: "Control plane",
-    role: "Local-first queue",
+    role: "Optional queue host",
     detail:
-      "Optional VPS service that accepts implement jobs, tracks worker heartbeats, assigns work when a Mac is healthy, and escalates to Cursor Cloud on failure.",
+      "Whatever machine you run it on — VPS, cloud VM, home lab, or none at all. With local-first it accepts jobs, tracks worker heartbeats, and escalates to Cursor Cloud. With cursor-only this hop is skipped entirely.",
   },
   {
     id: "mac",
-    title: "Mac worker",
-    role: "Local implementer",
+    title: "Worker",
+    role: "Optional local implementer",
     detail:
-      "Registers with capabilities, claims one heavy job at a time, runs planning/coding/testing locally, and returns a structured result for success or fallback.",
+      "Any system you tie into SEOS — Mac, Linux box, workstation. Registers with capabilities, claims work, runs planning/coding/testing locally, and returns a structured result. Not required when strategy is cursor-only.",
   },
   {
     id: "cursor",
     title: "Cursor Cloud",
     role: "Default / fallback",
     detail:
-      "Default implement path today, or escalation when the Mac is offline, times out, or fails validation. Continues from the local branch with a preserved handoff.",
+      "Default implement path today (cursor-only bypasses control plane + worker). Also the escalation path when a local worker is offline, times out, or fails validation — continues from the local branch with a preserved handoff.",
   },
   {
     id: "consumer",
@@ -149,20 +149,20 @@ function implementPath() {
     return {
       path: "Cursor Cloud",
       tone: "info",
-      why: "seos.yml strategy is cursor-only (the default). No control-plane hop.",
+      why: "cursor-only (default) — control plane and worker are bypassed entirely.",
     };
   }
   if (state.mac === "offline") {
     return {
       path: "Control plane → Cursor Cloud",
       tone: "warn",
-      why: "local-first, but the Mac heartbeat is stale or offline — escalate.",
+      why: "local-first, but no healthy worker heartbeat — escalate.",
     };
   }
   return {
-    path: "Control plane → Mac worker",
+    path: "Control plane → Worker",
     tone: "ok",
-    why: "local-first with a healthy Mac — the control plane assigns the job locally.",
+    why: "local-first with a healthy attached worker — the control plane assigns the job there.",
   };
 }
 
@@ -249,18 +249,20 @@ function renderDetail() {
   document.getElementById("toggle-effects").innerHTML = `
     <li><strong>Strategy:</strong> ${
       state.strategy === "local-first"
-        ? "Actions posts to the control plane; a Mac claims when healthy."
-        : "Actions calls Cursor Cloud directly via @cursor/sdk."
+        ? "Actions posts to your control plane; any healthy attached worker can claim."
+        : "Actions calls Cursor Cloud directly — control plane and worker are skipped."
     }</li>
     <li><strong>Ready:</strong> ${
       state.gateMode === "auto"
         ? "The spec job chains into implement in the same workflow."
         : "The pipeline stops at spec-added until you add ready."
     }</li>
-    <li><strong>Mac:</strong> ${
-      state.mac === "healthy"
-        ? "Heartbeat fresh → claim → local model."
-        : "Stale or offline → Cursor fallback recommended."
+    <li><strong>Worker:</strong> ${
+      state.strategy === "cursor-only"
+        ? "Ignored on cursor-only — nothing local is required."
+        : state.mac === "healthy"
+          ? "Heartbeat fresh → claim → run on that machine."
+          : "Stale or offline → Cursor fallback recommended."
     }</li>`;
 }
 
