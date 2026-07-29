@@ -31,4 +31,6 @@ test("buildWorkerOfflineHandoff has null startingRef", () => {
   });
   assert.equal(handoff.startingRef, null);
   assert.match(handoff.prompt, /offline/i);
+  assert.match(handoff.prompt, /Fixes #1/);
+  assert.match(handoff.prompt, /Do not merge/);
 });
