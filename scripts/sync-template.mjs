@@ -41,6 +41,8 @@ for (const file of [
 
 for (const file of [
   "dispatch-cursor-agent.mjs",
+  "route-implement.mjs",
+  "build-cursor-handoff.mjs",
   "load-config.mjs",
   "compose-context.mjs",
   "generate-issue-spec.sh",

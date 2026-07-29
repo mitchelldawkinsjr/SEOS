@@ -35,6 +35,8 @@ const WORKFLOWS = [
 
 const DISPATCH_SCRIPTS = [
   "dispatch-cursor-agent.mjs",
+  "route-implement.mjs",
+  "build-cursor-handoff.mjs",
   "load-config.mjs",
   "compose-context.mjs",
   "generate-issue-spec.sh",
@@ -335,6 +337,7 @@ SEOS initialized in ${targetDir}
 
 Next steps:
   1. Add GitHub Actions secrets: OPENAI_API_KEY, CURSOR_API_KEY
+     (optional local-first: CONTROL_PLANE_URL, CONTROL_PLANE_TOKEN)
   2. Enable Cursor cloud agent access for this repository
   3. Run npm install (installs @cursor/sdk for the dispatch script)
   4. Open an issue — auto-spec and auto-implement run by default

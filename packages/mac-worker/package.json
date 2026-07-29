@@ -1,0 +1,27 @@
+{
+  "name": "@seos/mac-worker",
+  "version": "0.1.0",
+  "description": "SEOS Mac local worker — heartbeat, claim jobs, run local harness, report results",
+  "type": "module",
+  "main": "./src/worker.mjs",
+  "bin": {
+    "seos-mac-worker": "./src/worker.mjs"
+  },
+  "scripts": {
+    "start": "node src/worker.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mitchelldawkinsjr/SEOS.git",
+    "directory": "packages/mac-worker"
+  }
+}

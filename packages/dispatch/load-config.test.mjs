@@ -99,3 +99,60 @@ test("loadConfig defaults enable automation", async () => {
   assert.equal(config.labels.noAgent, "no-agent");
 });
 
+const LOCAL_FIRST_SAMPLE = `project:
+  name: "Local App"
+agents:
+  implementation:
+    strategy: local-first
+    primary:
+      worker: mac-m1-max
+      provider: ollama
+      model: qwen2.5-coder:7b
+    fallback:
+      provider: cursor-cloud
+      model: composer-2.5
+    policy:
+      max_local_attempts: 3
+      timeout_minutes: 40
+      require_changes: true
+      require_validation: false
+controlPlane:
+  url: https://seos.example.com
+`;
+
+test("loadConfig defaults to cursor-only implementation strategy", async () => {
+  const config = await loadConfig(join(FIXTURE, "missing.yml"));
+  assert.equal(config.agents.implementation.strategy, "cursor-only");
+  assert.equal(config.controlPlane.url, "");
+});
+
+test("loadConfig parses local-first agents and controlPlane", async () => {
+  await mkdir(FIXTURE, { recursive: true });
+  await writeFile(join(FIXTURE, "local.yml"), LOCAL_FIRST_SAMPLE);
+  const config = await loadConfig(join(FIXTURE, "local.yml"));
+  assert.equal(config.agents.implementation.strategy, "local-first");
+  assert.equal(config.agents.implementation.primary.worker, "mac-m1-max");
+  assert.equal(config.agents.implementation.primary.model, "qwen2.5-coder:7b");
+  assert.equal(config.agents.implementation.fallback.provider, "cursor-cloud");
+  assert.equal(config.agents.implementation.policy.maxLocalAttempts, 3);
+  assert.equal(config.agents.implementation.policy.timeoutMinutes, 40);
+  assert.equal(config.agents.implementation.policy.requireValidation, false);
+  assert.equal(config.controlPlane.url, "https://seos.example.com");
+  await rm(FIXTURE, { recursive: true, force: true });
+});
+
+test("loadConfig honors CONTROL_PLANE_URL env override", async () => {
+  await mkdir(FIXTURE, { recursive: true });
+  await writeFile(join(FIXTURE, "env.yml"), LOCAL_FIRST_SAMPLE);
+  const prev = process.env.CONTROL_PLANE_URL;
+  process.env.CONTROL_PLANE_URL = "http://127.0.0.1:8787";
+  try {
+    const config = await loadConfig(join(FIXTURE, "env.yml"));
+    assert.equal(config.controlPlane.url, "http://127.0.0.1:8787");
+  } finally {
+    if (prev === undefined) delete process.env.CONTROL_PLANE_URL;
+    else process.env.CONTROL_PLANE_URL = prev;
+    await rm(FIXTURE, { recursive: true, force: true });
+  }
+});
+

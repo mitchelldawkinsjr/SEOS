@@ -9,6 +9,8 @@
   },
   "files": [
     "dispatch-cursor-agent.mjs",
+    "route-implement.mjs",
+    "build-cursor-handoff.mjs",
     "load-config.mjs",
     "compose-context.mjs",
     "generate-issue-spec.sh",

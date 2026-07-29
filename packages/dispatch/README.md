@@ -1,6 +1,6 @@
 # @seos/dispatch
 
-Source of truth for SEOS consumer scripts: Context Engine, config loader, shared pipeline scripts, and Cursor cloud agent dispatch.
+Source of truth for SEOS consumer scripts: Context Engine, config loader, shared pipeline scripts, implement router, and Cursor cloud agent dispatch.
 
 ## Consumer install
 
@@ -16,7 +16,9 @@ npm install   # installs @cursor/sdk
 | `compose-context.mjs` | Compose `ai-*-context.md` from `AGENT.md` + rules + overrides |
 | `load-config.mjs` | Read `.github/seos.yml` (or legacy `issue-bench.yml`) |
 | `generate-issue-spec.sh` | Planning Agent (OpenAI) + optional auto-ready |
-| `run-issue-implement.sh` | Guards + label handoff + dispatch |
+| `run-issue-implement.sh` | Guards + label handoff + router |
+| `route-implement.mjs` | cursor-only vs local-first (VPS control plane) |
+| `build-cursor-handoff.mjs` | Preserve-work Cursor escalation prompt |
 | `dispatch-cursor-agent.mjs` | Cursor cloud agent via `@cursor/sdk` |
 
 Workflows run these from `scripts/`.

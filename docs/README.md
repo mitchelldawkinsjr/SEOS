@@ -29,7 +29,8 @@ This documentation teaches the operating model before the mechanics: **philosoph
 ### 02 — Architecture (how it's built)
 - [OVERVIEW](02-architecture/OVERVIEW.md)
 - [CONTEXT_ENGINE](02-architecture/CONTEXT_ENGINE.md) — manifest-driven context composition (built)
-- Remaining per-layer docs (Core Runtime, Workflow Engine, Agent Runtime, Plugin System, Configuration) — planned; see [ROADMAP](00-vision/ROADMAP.md).
+- [LOCAL_FIRST_RUNTIME](02-architecture/LOCAL_FIRST_RUNTIME.md) — VPS control plane, Mac worker, Cursor fallback (Phase 1 partial)
+- Remaining per-layer docs (Core Runtime, Workflow Engine, Plugin System, Configuration) — planned; see [ROADMAP](00-vision/ROADMAP.md).
 
 ### 03 — Agents (who does the work)
 - [Agent role index + contract](03-agents/README.md)

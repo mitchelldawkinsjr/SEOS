@@ -23,6 +23,7 @@ SEOS grows from a working two-agent pipeline toward a full engineering operating
 | Human gates | throughout | **Built** | Open issue + merge PR (auto-ready optional via `agent-manual`) |
 | Configuration | throughout | **Built** | `.github/seos.yml` + `load-config.mjs` |
 | CLI install | onboarding | **Built** | `packages/cli` (`npx seos init`) |
+| Local-first runtime (VPS + Mac + Cursor fallback) | Implementation | **Partial** | Phase 1: control plane, mac-worker scaffold, dispatch router; see [Local-First Runtime](../02-architecture/LOCAL_FIRST_RUNTIME.md) |
 | Architecture review | Architecture | **Partial** | Proven in Fasted: `issue-architecture.yml`, `needs-architecture` gate |
 | Testing agent | Testing | **Partial** | Proven in Fasted: `pr-test-agent.yml`, `test-context.md` |
 | Documentation agent | Documentation | **Partial** | Proven in Fasted: `issue-docs.yml`, `docs-context.md` |

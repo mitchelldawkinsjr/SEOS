@@ -43,7 +43,7 @@ Triggers and sequences engineering work in response to events. *Today:* GitHub A
 Assembles the repository-specific context an agent needs, from base templates + stack presets + repository knowledge. *Today:* static context files (`context/ai-*.base.md`, `context/presets/*`) rendered at install time by the CLI, plus `.github/ai-*-context.md` read at run time. *Direction:* a `compose-context` capability that assembles context dynamically and eliminates duplicated prompts.
 
 ### Agent Runtime
-Dispatches bounded [agent roles](../03-agents/README.md) and manages their lifecycle. *Today:* `packages/dispatch` dispatches a Cursor cloud agent for implementation; the spec workflow calls OpenAI directly. *Direction:* a uniform role runtime where every discipline is dispatched the same way.
+Dispatches bounded [agent roles](../03-agents/README.md) and manages their lifecycle. *Today:* `packages/dispatch` routes implementation — default **cursor-only** via Cursor Cloud; optional **local-first** via a VPS control plane + Mac worker with Cursor fallback ([Local-First Runtime](LOCAL_FIRST_RUNTIME.md)). The spec workflow calls OpenAI directly. *Direction:* a uniform role runtime where every discipline is dispatched the same way.
 
 ### Knowledge Engine
 Captures lessons, patterns, and failures, and feeds them back into context. *Today:* not implemented — knowledge lives informally in the hand-edited context files. *Direction:* durable [repository knowledge](../01-concepts/WHAT_IS_SEOS.md) that compounds over time.
@@ -61,7 +61,7 @@ What the consuming repo provides: configuration (`.github/seos.yml`), rules, kno
 3. The **Context Engine** supplies repo context. — *`ai-spec-context.md`*
 4. The **Agent Runtime** runs the Planning Agent. — *OpenAI call*
 5. A human approves (`ready`); the engine fires again. — *Gate + `issue-implement.yml`*
-6. The Agent Runtime dispatches the Coding Agent with composed context. — *`packages/dispatch`*
+6. The Agent Runtime dispatches the Coding Agent with composed context. — *`packages/dispatch` router* (Cursor Cloud, or local-first → VPS → Mac / Cursor fallback)
 7. A draft PR appears; a human merges. — *Gate*
 8. *(Direction)* The **Knowledge Engine** records what was learned. — *Planned*
 
@@ -76,5 +76,6 @@ What the consuming repo provides: configuration (`.github/seos.yml`), rules, kno
 
 - [What Is SEOS?](../01-concepts/WHAT_IS_SEOS.md)
 - [Design Principles](../00-vision/DESIGN_PRINCIPLES.md)
+- [Local-First Runtime](LOCAL_FIRST_RUNTIME.md)
 - [Agent Roles](../03-agents/README.md)
 - [Roadmap](../00-vision/ROADMAP.md)
