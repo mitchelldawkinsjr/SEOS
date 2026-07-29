@@ -7,7 +7,8 @@
   "scripts": {
     "sync-template": "node scripts/sync-template.mjs",
     "validate": "node scripts/validate.mjs && node scripts/validate-vite-consumer.mjs",
-    "test": "node scripts/validate.mjs && node scripts/validate-vite-consumer.mjs && node --test packages/dispatch/load-config.test.mjs packages/dispatch/compose-context.test.mjs packages/dispatch/build-cursor-handoff.test.mjs packages/control-plane/test/*.test.mjs packages/mac-worker/test/*.test.mjs"
+    "test": "node scripts/validate.mjs && node scripts/validate-vite-consumer.mjs && node --test packages/dispatch/load-config.test.mjs packages/dispatch/compose-context.test.mjs packages/dispatch/build-cursor-handoff.test.mjs packages/control-plane/test/*.test.mjs packages/mac-worker/test/*.test.mjs",
+    "smoke:control-plane": "bash scripts/smoke-control-plane.sh"
   },
   "license": "MIT"
 }

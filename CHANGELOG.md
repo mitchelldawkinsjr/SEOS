@@ -3,6 +3,8 @@
 ## Unreleased
 
 - **Local-first runtime (Phase 1):**
+  - Control-plane HTTP integration tests and `npm run smoke:control-plane` for Mac-offline fallback verification.
+  - Live Cursor fallback in the control-plane Docker image (`@cursor/sdk` + `gh` bundled on VPS).
   - VPS control plane (`packages/control-plane`) — job queue, Mac worker heartbeats, Cursor fallback/stub.
   - Mac worker scaffold (`packages/mac-worker`) — one-job-at-a-time heartbeat/claim/result loop.
   - Implement router (`route-implement.mjs`) — `cursor-only` (default) or `local-first` via control plane.
