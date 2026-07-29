@@ -55,8 +55,9 @@ async function readBody(req) {
 async function maybeAssignOrFallback(job) {
   if (job.strategy !== "local-first") {
     const handoff = {
-      startingRef: job.meta?.startingRef || null,
-      prompt: null,
+      startingRef:
+        job.meta?.startingRef || job.meta?.defaultBranch || "main",
+      prompt: buildOfflineHandoffPrompt(job),
       summary: "Non local-first job routed to Cursor",
     };
     const cursor = await triggerCursorFallback({ job, handoff });
@@ -71,16 +72,13 @@ async function maybeAssignOrFallback(job) {
   const worker = await store.findHealthyWorker(preferred);
   if (!worker) {
     const handoff = {
-      startingRef: null,
-      prompt: null,
+      startingRef: job.meta?.defaultBranch || "main",
+      prompt: buildOfflineHandoffPrompt(job),
       summary: "Mac worker offline or unhealthy — escalating to Cursor Cloud",
     };
     const cursor = await triggerCursorFallback({
       job,
-      handoff: {
-        ...handoff,
-        prompt: buildOfflineHandoffPrompt(job),
-      },
+      handoff,
     });
     return store.updateJob(job.id, {
       status: cursor.ok ? "fallback_dispatched" : "fallback_stubbed",
@@ -101,6 +99,15 @@ async function maybeAssignOrFallback(job) {
 }
 
 function buildOfflineHandoffPrompt(job) {
+  const attached = job.meta?.implementPrompt;
+  if (typeof attached === "string" && attached.trim()) {
+    return `The local SEOS Mac worker is offline or unhealthy. Continue with the consumer implement brief below (includes project rules, issue, and acceptance criteria). Open a draft PR with Fixes #${job.issueNumber}. Do not merge.
+
+---
+
+${attached.trim()}`;
+  }
+
   return `The local SEOS implementation agent could not start because the Mac worker is offline or unhealthy.
 
 Issue: https://github.com/${job.repo}/issues/${job.issueNumber}
@@ -113,7 +120,7 @@ function buildResultHandoffPrompt(job, result) {
   const branch = result.branch || job.meta?.branch || "(unknown)";
   const files = (result.changedFileList || []).join("\n") || "(none listed)";
   const failed = (result.failedCommands || []).join("\n") || "(none)";
-  return `The local SEOS implementation agent attempted this issue but did not complete validation.
+  const localBlock = `The local SEOS implementation agent attempted this issue but did not complete validation.
 
 Branch:
 ${branch}
@@ -133,6 +140,19 @@ ${result.summary || "(none)"}
 Failure status: ${result.status}
 
 Continue from the existing branch. Preserve working changes, fix the remaining problems, run validation, and update the draft pull request. Do not merge.`;
+
+  const attached = job.meta?.implementPrompt;
+  if (typeof attached === "string" && attached.trim()) {
+    return `${localBlock}
+
+---
+
+## Original consumer implement brief
+
+${attached.trim()}`;
+  }
+
+  return localBlock;
 }
 
 const server = createServer(async (req, res) => {

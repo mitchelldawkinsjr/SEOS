@@ -4,9 +4,16 @@
  * - strategy cursor-only (default) → Cursor Cloud
  * - strategy local-first + control plane URL → POST /v1/jobs on VPS
  * - local-first without control plane → fall back to Cursor with a notice
+ *
+ * For local-first, the full consumer implement prompt (ai-implement-context +
+ * issue + reminders) is attached to the job so VPS Cursor fallback keeps
+ * Fasted/SEOS rules instead of a thin offline stub prompt.
  */
 import { loadConfig } from "./load-config.mjs";
-import { dispatchCursorAgent } from "./dispatch-cursor-agent.mjs";
+import {
+  buildImplementPrompt,
+  dispatchCursorAgent,
+} from "./dispatch-cursor-agent.mjs";
 
 const issueNumber = process.env.ISSUE_NUMBER;
 const repo = process.env.REPO;
@@ -41,6 +48,30 @@ async function enqueueLocalFirst() {
     );
   }
 
+  let implementPrompt = null;
+  let issueTitle = null;
+  if (ghToken) {
+    try {
+      const built = await buildImplementPrompt({
+        issueNumber,
+        repo,
+        ghToken,
+        config,
+        promptPrefix: `SEOS local-first handoff from GitHub Actions for ${repo}#${issueNumber}.`,
+      });
+      implementPrompt = built.prompt;
+      issueTitle = built.title;
+      console.log(
+        `Attached full implement prompt (${implementPrompt.length} chars) for control-plane fallback`
+      );
+    } catch (err) {
+      console.warn(
+        "Could not build full implement prompt for control plane:",
+        err.message || err
+      );
+    }
+  }
+
   const body = {
     type: "implementation",
     issueNumber,
@@ -53,6 +84,9 @@ async function enqueueLocalFirst() {
       enqueuedBy: "route-implement",
       defaultBranch:
         config.agent.startingRef || config.project.defaultBranch || "main",
+      issueTitle,
+      // Full consumer prompt for VPS Cursor fallback / Mac harness context
+      implementPrompt,
     },
   };
 
@@ -85,10 +119,12 @@ async function enqueueLocalFirst() {
     jobId: data.job?.id,
     status: data.job?.status,
     fallbackTriggered: data.job?.fallbackTriggered,
+    cursorOk: data.job?.cursorDispatch?.ok,
+    cursorStubbed: data.job?.cursorDispatch?.stubbed,
   });
 
-  // If control plane already fell back (Mac offline), Cursor may already be stubbed/dispatched.
-  // When stubbed (no CURSOR_API_KEY on VPS), dispatch Cursor from Actions as a safety net.
+  // Safety net: if control plane stubbed Cursor (missing keys / dispatch module),
+  // start Cursor from Actions with the same full Fasted/consumer prompt.
   if (
     data.job?.fallbackTriggered &&
     data.job?.cursorDispatch?.stubbed &&
@@ -104,6 +140,7 @@ async function enqueueLocalFirst() {
       apiKey,
       ghToken,
       model: config.agents.implementation.fallback?.model,
+      promptOverride: implementPrompt || undefined,
       promptPrefix: `SEOS local-first: Mac worker was offline. Control plane job ${data.job.id}.`,
     });
   }
