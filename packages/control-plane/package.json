@@ -14,6 +14,9 @@
   "engines": {
     "node": ">=20"
   },
+  "dependencies": {
+    "@cursor/sdk": "^1.0.18"
+  },
   "files": [
     "src",
     "docker-compose.yml",
