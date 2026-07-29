@@ -39,6 +39,7 @@ Implement an approved issue as a small, focused, reviewable draft pull request �
 
 - The spec is ambiguous or the acceptance criteria cannot be met → comment on the issue explaining why, relabel `agent-working` → `agent-failed`, and do **not** open a PR.
 - Dispatch fails to start → the workflow recovers labels (`agent-working` → `agent-failed` + `ready`) and comments so a human can retry by re-adding `ready`.
+- **Local-first path:** when `agents.implementation.strategy: local-first`, the Mac worker runs first. On `worker_offline`, `timeout`, `validation_failed`, `no_changes`, `invalid_patch`, `model_unavailable`, or `max_attempts_reached`, the VPS control plane escalates to Cursor Cloud with a **preserve-work handoff** (issue, spec, branch, diff, failed commands, local summary). Cursor `startingRef` is the local branch when one exists — not a fresh start from `main`. See [Local-First Runtime](../02-architecture/LOCAL_FIRST_RUNTIME.md).
 
 ## Human Approval Points
 
@@ -51,8 +52,9 @@ Implement an approved issue as a small, focused, reviewable draft pull request �
 ## Implementation
 
 - Workflows: chained from [`issue-auto-triage.yml`](../../workflows/issue-auto-triage.yml) / [`issue-spec.yml`](../../workflows/issue-spec.yml) when auto-ready applies; manual path via [`issue-implement.yml`](../../workflows/issue-implement.yml) (human `ready`).
-- Shared script: [`packages/dispatch/run-issue-implement.sh`](../../packages/dispatch/run-issue-implement.sh).
-- Dispatch: [`packages/dispatch/dispatch-cursor-agent.mjs`](../../packages/dispatch/dispatch-cursor-agent.mjs) via `@cursor/sdk`.
-- Model: configurable (`agent.model`, default `composer-2.5`).
-- Secret: `CURSOR_API_KEY`; requires Cursor cloud-agent repo access.
+- Shared script: [`packages/dispatch/run-issue-implement.sh`](../../packages/dispatch/run-issue-implement.sh) → [`route-implement.mjs`](../../packages/dispatch/route-implement.mjs).
+- Cursor provider: [`packages/dispatch/dispatch-cursor-agent.mjs`](../../packages/dispatch/dispatch-cursor-agent.mjs) via `@cursor/sdk`.
+- Local-first: VPS [`packages/control-plane`](../../packages/control-plane/) + Mac [`packages/mac-worker`](../../packages/mac-worker/); handoff via [`build-cursor-handoff.mjs`](../../packages/dispatch/build-cursor-handoff.mjs).
+- Model: configurable (`agent.model` / `agents.implementation.*`, default Cursor `composer-2.5`).
+- Secrets: `CURSOR_API_KEY`; for local-first also `CONTROL_PLANE_URL` + `CONTROL_PLANE_TOKEN`.
 - Context: composed via the [Context Engine](../02-architecture/CONTEXT_ENGINE.md).

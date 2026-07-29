@@ -7,7 +7,7 @@ Drop-in Software Engineering Operating System: open an issue and the pipeline ru
 ## Prerequisites
 
 - GitHub Actions enabled
-- `OPENAI_API_KEY` and `CURSOR_API_KEY` secrets
+- `OPENAI_API_KEY` and `CURSOR_API_KEY` secrets (optional local-first: `CONTROL_PLANE_URL`, `CONTROL_PLANE_TOKEN`)
 - Cursor cloud agent access to this repository
 
 ## Quick start
@@ -56,6 +56,8 @@ npm install
 | `scripts/compose-context.mjs` | Context Engine |
 | `scripts/generate-issue-spec.sh` | Shared planning script |
 | `scripts/run-issue-implement.sh` | Shared implement dispatch |
+| `scripts/route-implement.mjs` | cursor-only vs local-first router |
+| `scripts/build-cursor-handoff.mjs` | Preserve-work Cursor escalation |
 | `scripts/dispatch-cursor-agent.mjs` | Cursor cloud agent dispatch |
 | `scripts/load-config.mjs` | `seos.yml` config loader |
 

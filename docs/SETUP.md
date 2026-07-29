@@ -14,9 +14,13 @@ Add under **Settings → Secrets and variables → Actions**:
 | Secret | Used by | Required |
 |--------|---------|----------|
 | `OPENAI_API_KEY` | `issue-auto-triage.yml`, `issue-spec.yml` | Yes |
-| `CURSOR_API_KEY` | implement jobs | Yes |
+| `CURSOR_API_KEY` | implement jobs (Cursor path / fallback) | Yes for cursor-only; recommended for local-first |
+| `CONTROL_PLANE_URL` | implement jobs (local-first) | Only if `agents.implementation.strategy: local-first` |
+| `CONTROL_PLANE_TOKEN` | implement jobs (local-first) | Only with control plane |
 
 `GITHUB_TOKEN` is provided automatically by Actions.
+
+Local-first routing (optional): see [Local-First Runtime](02-architecture/LOCAL_FIRST_RUNTIME.md). Default remains Cursor-only.
 
 ## Optional repo variables
 
@@ -46,7 +50,7 @@ Copy from [`template/`](../template/):
 - `.github/ai-spec-context.md`, `.github/ai-implement-context.md` (generated)
 - `.github/seos.yml`
 - `package.json` with `@cursor/sdk` and `agent:compose` scripts
-- `scripts/compose-context.mjs`, `generate-issue-spec.sh`, `run-issue-implement.sh`, `dispatch-cursor-agent.mjs`, `load-config.mjs`
+- `scripts/compose-context.mjs`, `generate-issue-spec.sh`, `run-issue-implement.sh`, `route-implement.mjs`, `build-cursor-handoff.mjs`, `dispatch-cursor-agent.mjs`, `load-config.mjs`
 
 Run `npm install` to install `@cursor/sdk` for the dispatch script.
 

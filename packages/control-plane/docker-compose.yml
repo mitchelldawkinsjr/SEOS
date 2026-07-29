@@ -1,0 +1,32 @@
+# SEOS control plane — deploy under /opt/apps/seos on the VPS.
+# Isolated from Fasted (/opt/apps/fasted-calendar). Does not join fasted-network.
+name: seos-control-plane
+
+services:
+  control-plane:
+    build: .
+    container_name: seos-control-plane
+    restart: unless-stopped
+    ports:
+      - "${SEOS_PUBLISH_PORT:-8787}:8787"
+    environment:
+      PORT: "8787"
+      SEOS_DATA_DIR: /data
+      CONTROL_PLANE_TOKEN: ${CONTROL_PLANE_TOKEN:-}
+      CURSOR_API_KEY: ${CURSOR_API_KEY:-}
+      GH_TOKEN: ${GH_TOKEN:-}
+      WORKER_STALE_SECONDS: ${WORKER_STALE_SECONDS:-90}
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

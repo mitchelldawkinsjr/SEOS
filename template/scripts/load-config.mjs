@@ -3,6 +3,29 @@ import { readFile } from "node:fs/promises";
 const DEFAULTS = {
   project: { name: "Project", defaultBranch: "main" },
   agent: { model: "composer-2.5", startingRef: "main" },
+  agents: {
+    implementation: {
+      strategy: "cursor-only",
+      primary: {
+        worker: "mac-m1-max",
+        provider: "ollama",
+        model: "qwen2.5-coder:7b",
+      },
+      fallback: {
+        provider: "cursor-cloud",
+        model: "composer-2.5",
+      },
+      policy: {
+        maxLocalAttempts: 2,
+        timeoutMinutes: 35,
+        requireChanges: true,
+        requireValidation: true,
+      },
+    },
+  },
+  controlPlane: {
+    url: "",
+  },
   labels: {
     needsSpec: "needs-spec",
     specAdded: "spec-added",
@@ -36,6 +59,7 @@ function parseScalar(value) {
   }
   if (trimmed === "true") return true;
   if (trimmed === "false") return false;
+  if (/^-?\d+$/.test(trimmed)) return Number(trimmed);
   return trimmed;
 }
 
@@ -64,6 +88,30 @@ function sectionAt(lines, index) {
     }
   }
   return "";
+}
+
+/** Build indent → key stack for nested mapping keys (key: with no inline value). */
+function nestPath(lines, index) {
+  const stack = [];
+  for (let i = 0; i <= index; i++) {
+    const line = lines[i];
+    if (!line || !line.trim() || line.trim().startsWith("#")) continue;
+    const indent = line.search(/\S/);
+    const trimmed = line.trim();
+    const mapOnly = trimmed.match(/^([\w.-]+):\s*$/);
+    const mapValue = trimmed.match(/^([\w.-]+):\s+\S/);
+    if (mapOnly) {
+      while (stack.length && stack[stack.length - 1].indent >= indent) {
+        stack.pop();
+      }
+      stack.push({ indent, key: mapOnly[1] });
+    } else if (mapValue) {
+      while (stack.length && stack[stack.length - 1].indent >= indent) {
+        stack.pop();
+      }
+    }
+  }
+  return stack.map((s) => s.key);
 }
 
 const DEFAULT_CONFIG_PATHS = [".github/seos.yml", ".github/issue-bench.yml"];
@@ -97,6 +145,8 @@ export async function loadConfig(configPath) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const section = sectionAt(lines, i - 1);
+    const path = nestPath(lines, i - 1);
+    const pathStr = path.join(".");
 
     const projectName = line.match(/^  name:\s*(.+)$/);
     if (projectName && section === "project") {
@@ -156,10 +206,55 @@ export async function loadConfig(configPath) {
       config.automation.autoReadyAfterSpec = Boolean(parseScalar(autoReady[1]));
       continue;
     }
+
+    const cpUrl = line.match(/^  url:\s*(.+)$/);
+    if (cpUrl && section === "controlPlane") {
+      config.controlPlane.url = String(parseScalar(cpUrl[1]));
+      continue;
+    }
+
+    const kv = line.match(/^\s+([\w_]+):\s*(.+)$/);
+    if (!kv) continue;
+    const [, key, rawValue] = kv;
+    const value = parseScalar(rawValue);
+
+    if (pathStr === "agents.implementation" && key === "strategy") {
+      config.agents.implementation.strategy = String(value);
+      continue;
+    }
+    if (pathStr === "agents.implementation.primary") {
+      if (key === "worker") config.agents.implementation.primary.worker = String(value);
+      if (key === "provider") config.agents.implementation.primary.provider = String(value);
+      if (key === "model") config.agents.implementation.primary.model = String(value);
+      continue;
+    }
+    if (pathStr === "agents.implementation.fallback") {
+      if (key === "provider") config.agents.implementation.fallback.provider = String(value);
+      if (key === "model") config.agents.implementation.fallback.model = String(value);
+      continue;
+    }
+    if (pathStr === "agents.implementation.policy") {
+      if (key === "max_local_attempts" || key === "maxLocalAttempts") {
+        config.agents.implementation.policy.maxLocalAttempts = Number(value);
+      }
+      if (key === "timeout_minutes" || key === "timeoutMinutes") {
+        config.agents.implementation.policy.timeoutMinutes = Number(value);
+      }
+      if (key === "require_changes" || key === "requireChanges") {
+        config.agents.implementation.policy.requireChanges = Boolean(value);
+      }
+      if (key === "require_validation" || key === "requireValidation") {
+        config.agents.implementation.policy.requireValidation = Boolean(value);
+      }
+    }
   }
 
   config.agent.startingRef =
     config.agent.startingRef || config.project.defaultBranch || "main";
+
+  if (process.env.CONTROL_PLANE_URL) {
+    config.controlPlane.url = process.env.CONTROL_PLANE_URL;
+  }
 
   return config;
 }

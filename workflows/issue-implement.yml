@@ -2,6 +2,8 @@ name: Issue Implement
 
 # Manual ready path (agent-manual or AGENT_AUTO_READY_ENABLED=false).
 # Auto-triage and issue-spec chain implement themselves when auto-ready applies.
+# Routes via scripts/route-implement.mjs — cursor-only by default, or local-first
+# when seos.yml + CONTROL_PLANE_* secrets are configured.
 
 on:
   issues:
@@ -12,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  dispatch-cursor-agent:
+  dispatch-implement-agent:
     # Auto-triage / issue-spec chain implement themselves when they apply ready.
     if: github.event.label.name == 'ready' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
@@ -33,12 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Dispatch Cursor cloud agent
+      - name: Route implement (Cursor or local-first control plane)
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
+          CONTROL_PLANE_URL: ${{ secrets.CONTROL_PLANE_URL }}
+          CONTROL_PLANE_TOKEN: ${{ secrets.CONTROL_PLANE_TOKEN }}
         run: |
           chmod +x scripts/run-issue-implement.sh
           scripts/run-issue-implement.sh
@@ -54,4 +58,4 @@ jobs:
             --remove-label agent-working \
             --add-label agent-failed \
             --add-label ready 2>/dev/null || true
-          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "Cursor cloud agent dispatch failed. Check the [Actions run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) and re-add \`ready\` after fixing."
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "Implement dispatch failed. Check the [Actions run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) and re-add \`ready\` after fixing."

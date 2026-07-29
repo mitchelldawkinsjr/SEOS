@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Local-first runtime (Phase 1):**
+  - VPS control plane (`packages/control-plane`) — job queue, Mac worker heartbeats, Cursor fallback/stub.
+  - Mac worker scaffold (`packages/mac-worker`) — one-job-at-a-time heartbeat/claim/result loop.
+  - Implement router (`route-implement.mjs`) — `cursor-only` (default) or `local-first` via control plane.
+  - Preserve-work Cursor handoff (`build-cursor-handoff.mjs`); `dispatchCursorAgent({ startingRef })` for escalation.
+  - `seos.yml` `agents.implementation` + `controlPlane.url`; deploy helper `scripts/deploy-control-plane.sh` → `/opt/apps/seos`.
+  - Docs: [Local-First Runtime](docs/02-architecture/LOCAL_FIRST_RUNTIME.md).
 - **Drop-in pipeline automation (Fasted-grade Tier 1):**
   - Context Engine: `compose-context.mjs`, `agent-manifest.json`, `AGENT.md` / `agent-rules/` / `agent-overrides/`, `npm run agent:compose` + `--check` drift gate.
   - Knowledge skeleton: `.github/agent-knowledge/` (README + TEMPLATE).

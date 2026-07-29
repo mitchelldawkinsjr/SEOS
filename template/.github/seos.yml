@@ -4,6 +4,26 @@ project:
 agent:
   model: composer-2.5
   startingRef: main
+# Default strategy is cursor-only. Opt into local-first when a VPS control plane
+# and Mac worker are configured (see docs/02-architecture/LOCAL_FIRST_RUNTIME.md).
+agents:
+  implementation:
+    strategy: cursor-only
+    # strategy: local-first
+    primary:
+      worker: mac-m1-max
+      provider: ollama
+      model: qwen2.5-coder:7b
+    fallback:
+      provider: cursor-cloud
+      model: composer-2.5
+    policy:
+      max_local_attempts: 2
+      timeout_minutes: 35
+      require_changes: true
+      require_validation: true
+# controlPlane:
+#   url: https://seos.example.com
 commands:
   build: "npm run build"
   test: "npm run test:e2e"
