@@ -31,4 +31,27 @@ test("buildWorkerOfflineHandoff has null startingRef", () => {
   });
   assert.equal(handoff.startingRef, null);
   assert.match(handoff.prompt, /offline/i);
+  assert.match(handoff.prompt, /Fixes #1/);
+  assert.match(handoff.prompt, /Do not merge/);
+});
+
+test("buildCursorHandoff escalates no_changes dry-run with branch hint", () => {
+  const handoff = buildCursorHandoff({
+    issueNumber: 1,
+    repo: "owner/repo",
+    result: {
+      status: "no_changes",
+      branch: "seos/issue-1",
+      changedFileList: [],
+      failedCommands: [],
+      diff: "",
+      summary:
+        "Dry-run harness: no local edits applied. Configure SEOS_WORKER_HARNESS=shell and SEOS_WORKER_COMMAND to enable a real harness.",
+    },
+  });
+  assert.equal(handoff.startingRef, "seos/issue-1");
+  assert.match(handoff.prompt, /no_changes/);
+  assert.match(handoff.prompt, /Dry-run harness/);
+  assert.match(handoff.prompt, /Preserve working changes/);
+  assert.match(handoff.prompt, /Do not merge/);
 });
