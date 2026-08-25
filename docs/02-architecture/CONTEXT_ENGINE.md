@@ -1,6 +1,6 @@
 # Context Engine
 
-> Status: **Built.** The Context Engine ships with SEOS (`packages/dispatch/compose-context.mjs`, scaffolded by `npx seos init`). Proven first in [Fasted](../06-case-studies/FASTED.md).
+> Status: **Built.** The Context Engine ships with SEOS (`packages/dispatch/compose-context.mjs`, scaffolded by `npx @mitchdawkinsjr/seos init`). Proven first in [Fasted](../06-case-studies/FASTED.md).
 
 ## The problem it solves
 

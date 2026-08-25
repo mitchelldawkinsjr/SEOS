@@ -106,7 +106,7 @@ function printHelp() {
   console.log(`seos — Software Engineering Operating System
 
 Usage:
-  npx seos init [options]
+ npx @mitchdawkinsjr/seos init [options]
 
 Options:
   -y, --yes              Non-interactive defaults

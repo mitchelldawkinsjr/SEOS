@@ -1,5 +1,5 @@
 {
-  "name": "seos",
+  "name": "@mitchdawkinsjr/seos",
   "version": "0.3.0",
   "description": "SEOS — CLI to install a Software Engineering Operating System (human-gated issue → spec → Cursor agent pipeline) into a repo",
   "type": "module",
@@ -13,6 +13,9 @@
   "scripts": {
     "bundle": "node ../../scripts/sync-cli-bundle.mjs",
     "prepublishOnly": "node ../../scripts/sync-cli-bundle.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=20"

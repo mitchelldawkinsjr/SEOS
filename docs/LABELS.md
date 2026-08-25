@@ -59,7 +59,7 @@ Bot-added labels **do not** trigger other `on: labeled` workflows (`GITHUB_TOKEN
 Labels are created automatically on first workflow run. To create them upfront:
 
 ```bash
-npx seos init --create-labels --repo owner/repo --yes
+npx @mitchdawkinsjr/seos init --create-labels --repo owner/repo --yes
 ```
 
 Or manually under **Issues → Labels** using the colors in the table above.

@@ -34,7 +34,7 @@ Local-first routing (optional): see [Local-First Runtime](02-architecture/LOCAL_
 ### Option A — CLI (recommended)
 
 ```bash
-npx seos init
+npx @mitchdawkinsjr/seos init
 cd your-app && npm install
 git add .github package.json scripts && git commit -m "Add SEOS pipeline"
 ```

@@ -17,7 +17,7 @@ flowchart LR
 
 ## What Fasted proves (Tier 1) — now in SEOS
 
-The core pipeline — [Planning Agent](../03-agents/PLANNING_AGENT.md) → [Coding Agent](../03-agents/CODING_AGENT.md) → human merge — ran in production on Fasted and now ships with `npx seos init`:
+The core pipeline — [Planning Agent](../03-agents/PLANNING_AGENT.md) → [Coding Agent](../03-agents/CODING_AGENT.md) → human merge — ran in production on Fasted and now ships with `npx @mitchdawkinsjr/seos init`:
 
 - Open issue → auto `needs-spec` → repo-aligned spec comment.
 - Auto `ready` (unless `agent-manual`) → Cursor cloud agent opens a small draft PR with `Fixes #N`.
