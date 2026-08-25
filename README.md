@@ -52,7 +52,11 @@ npx seos init --preset vite-react --yes --name "My App" --repo owner/repo
 npm install
 ```
 
+The `seos` CLI is a self-contained npm package: it bundles the workflows, Context Engine sources, and dispatch scripts, so `npx seos init` works in any repo with no clone of SEOS required.
+
 Add `OPENAI_API_KEY` and `CURSOR_API_KEY` to GitHub Actions secrets. See [docs/SETUP.md](docs/SETUP.md).
+
+> Maintainers: to publish a new version, run `npm run bundle` (or rely on the automatic `prepublishOnly` hook) from `packages/cli/`, then `npm publish`. The bundle (`packages/cli/assets/`) is gitignored and regenerated from `workflows/` + `context/` + `packages/dispatch/` to avoid drift.
 
 ### Option B — Copy the template
 

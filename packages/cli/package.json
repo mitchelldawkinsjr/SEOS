@@ -1,14 +1,19 @@
 {
   "name": "seos",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SEOS — CLI to install a Software Engineering Operating System (human-gated issue → spec → Cursor agent pipeline) into a repo",
   "type": "module",
   "bin": {
     "seos": "./bin/seos.mjs"
   },
   "files": [
-    "bin"
+    "bin",
+    "assets"
   ],
+  "scripts": {
+    "bundle": "node ../../scripts/sync-cli-bundle.mjs",
+    "prepublishOnly": "node ../../scripts/sync-cli-bundle.mjs"
+  },
   "engines": {
     "node": ">=20"
   },
