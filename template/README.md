@@ -12,7 +12,7 @@ Drop-in Software Engineering Operating System: open an issue and the pipeline ru
 
 ## Quick start
 
-1. **Use this template** — create a new repo from [github.com/mitchelldawkinsjr/SEOS](https://github.com/mitchelldawkinsjr/SEOS) and copy the `template/` directory contents into your repo root (or run `npx seos init` in an existing project).
+1. **Use this template** — create a new repo from [github.com/mitchelldawkinsjr/SEOS](https://github.com/mitchelldawkinsjr/SEOS) and copy the `template/` directory contents into your repo root (or run `npx @mitchdawkinsjr/seos init` in an existing project).
 
 2. **Customize context** — edit `.github/AGENT.md` and `.github/agent-rules/`, then run `npm run agent:compose`. Do not edit `ai-*-context.md` by hand (they are generated).
 
@@ -35,7 +35,7 @@ Drop-in Software Engineering Operating System: open an issue and the pipeline ru
 ## Alternative: CLI init
 
 ```bash
-npx seos init --preset vite-react --yes --name "My App" --repo owner/repo
+npx @mitchdawkinsjr/seos init --preset vite-react --yes --name "My App" --repo owner/repo
 npm install
 ```
 

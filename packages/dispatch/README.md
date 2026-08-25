@@ -7,7 +7,7 @@ Source of truth for SEOS consumer scripts: Context Engine, config loader, shared
 **Recommended:** copy via CLI or template sync (vendored into `scripts/`):
 
 ```bash
-npx seos init
+npx @mitchdawkinsjr/seos init
 npm install   # installs @cursor/sdk
 ```
 
@@ -32,7 +32,7 @@ npm install @seos/dispatch @cursor/sdk
 node node_modules/@seos/dispatch/dispatch-cursor-agent.mjs
 ```
 
-Until published, use vendored scripts from `template/scripts/` or `npx seos init`.
+Until published, use vendored scripts from `template/scripts/` or `npx @mitchdawkinsjr/seos init`.
 
 ## Configuration
 

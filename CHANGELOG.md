@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **CLI is now installable via `npx seos init`.** The `seos` package is self-contained: it bundles `workflows/`, `context/`, and the `packages/dispatch/` runtime scripts into `packages/cli/assets/` at publish time. `seos.mjs` resolves assets relative to itself (installed package) with a fallback to the monorepo root (dev clone), so `npx seos init` works in any repo without cloning SEOS. Added `scripts/sync-cli-bundle.mjs` (run via `npm run bundle` and the `prepublishOnly` hook), gitignored `packages/cli/assets/`, a validate check, and bumped to `0.3.0`.
+- **CLI is now installable via `npx @mitchdawkinsjr/seos init`.** The `@mitchdawkinsjr/seos` package is self-contained: it bundles `workflows/`, `context/`, and the `packages/dispatch/` runtime scripts into `packages/cli/assets/` at publish time. `seos.mjs` resolves assets relative to itself (installed package) with a fallback to the monorepo root (dev clone), so `npx @mitchdawkinsjr/seos init` works in any repo without cloning SEOS. The bin name is `seos`. Added `scripts/sync-cli-bundle.mjs` (run via `npm run bundle` and the `prepublishOnly` hook), gitignored `packages/cli/assets/`, a validate check, and bumped to `0.3.0`. Published as a scoped package (`@mitchdawkinsjr/seos`) with `--access=public` because npm rejected the unscoped `seos` name as too similar to existing packages.
 
 - **Local-first runtime (Phase 1):**
   - VPS control plane (`packages/control-plane`) — job queue, Mac worker heartbeats, Cursor fallback/stub.
@@ -21,7 +21,7 @@
   - `seos.yml` `automation:` + opt-out `labels:`; CLI creates all pipeline labels.
 - Rename: **issue-bench → SEOS** (Software Engineering Operating System).
   - Repo moved to `github.com/mitchelldawkinsjr/SEOS`.
-  - Packages renamed: `issue-bench` → `seos`, `@issue-bench/dispatch` → `@seos/dispatch`; CLI is now `npx seos init`.
+  - Packages renamed: `issue-bench` → `seos`, `@issue-bench/dispatch` → `@seos/dispatch`; CLI is now `npx @mitchdawkinsjr/seos init` (bin `seos`).
   - Config file `.github/issue-bench.yml` → `.github/seos.yml`. The legacy filename is still read for backward compatibility.
 - SEOS documentation foundation: operating model as a Software Engineering Operating System.
   - `docs/00-vision`, `docs/01-concepts`, `docs/02-architecture`, `docs/03-agents`, `docs/06-case-studies/FASTED.md`.

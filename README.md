@@ -48,15 +48,15 @@ Tier 2 (CI gates, Bugbot/Ponytail/Intent review, deploy health) is documented in
 ### Option A — CLI (fastest)
 
 ```bash
-npx seos init --preset vite-react --yes --name "My App" --repo owner/repo
+npx @mitchdawkinsjr/seos init --preset vite-react --yes --name "My App" --repo owner/repo
 npm install
 ```
 
-The `seos` CLI is a self-contained npm package: it bundles the workflows, Context Engine sources, and dispatch scripts, so `npx seos init` works in any repo with no clone of SEOS required.
+The `@mitchdawkinsjr/seos` CLI is a self-contained npm package: it bundles the workflows, Context Engine sources, and dispatch scripts, so `npx @mitchdawkinsjr/seos init` works in any repo with no clone of SEOS required. (The bin name is `seos`, so once installed the command is just `seos init`.)
 
 Add `OPENAI_API_KEY` and `CURSOR_API_KEY` to GitHub Actions secrets. See [docs/SETUP.md](docs/SETUP.md).
 
-> Maintainers: to publish a new version, run `npm run bundle` (or rely on the automatic `prepublishOnly` hook) from `packages/cli/`, then `npm publish`. The bundle (`packages/cli/assets/`) is gitignored and regenerated from `workflows/` + `context/` + `packages/dispatch/` to avoid drift.
+> Maintainers: to publish a new version, run `npm run bundle` (or rely on the automatic `prepublishOnly` hook) from `packages/cli/`, then `npm publish --access=public`. The package is scoped (`@mitchdawkinsjr/seos`) with `publishConfig.access: public`. The bundle (`packages/cli/assets/`) is gitignored and regenerated from `workflows/` + `context/` + `packages/dispatch/` to avoid drift.
 
 ### Option B — Copy the template
 
@@ -86,7 +86,7 @@ The framework supplies the engineering workflow. See [docs/SETUP.md](docs/SETUP.
 | [`packages/dispatch`](packages/dispatch/) | `@seos/dispatch` — compose, load-config, implement router, Cursor dispatch |
 | [`packages/control-plane`](packages/control-plane/) | Optional local-first dispatcher (any host; queue, worker health, Cursor fallback) |
 | [`packages/mac-worker`](packages/mac-worker/) | Reference worker client for any attached machine (heartbeat → claim → harness → result) |
-| [`packages/cli`](packages/cli/) | `npx seos init` |
+| [`packages/cli`](packages/cli/) | `npx @mitchdawkinsjr/seos init` |
 | [`workflows/`](workflows/) | Canonical workflow YAML (auto-triage, spec, implement) |
 | [`context/`](context/) | Context Engine sources (guide, rules, overrides, manifest, presets) |
 
