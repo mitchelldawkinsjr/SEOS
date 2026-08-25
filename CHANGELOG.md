@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **CLI is now installable via `npx seos init`.** The `seos` package is self-contained: it bundles `workflows/`, `context/`, and the `packages/dispatch/` runtime scripts into `packages/cli/assets/` at publish time. `seos.mjs` resolves assets relative to itself (installed package) with a fallback to the monorepo root (dev clone), so `npx seos init` works in any repo without cloning SEOS. Added `scripts/sync-cli-bundle.mjs` (run via `npm run bundle` and the `prepublishOnly` hook), gitignored `packages/cli/assets/`, a validate check, and bumped to `0.3.0`.
+
 - **Local-first runtime (Phase 1):**
   - VPS control plane (`packages/control-plane`) — job queue, Mac worker heartbeats, Cursor fallback/stub.
   - Mac worker scaffold (`packages/mac-worker`) — one-job-at-a-time heartbeat/claim/result loop.

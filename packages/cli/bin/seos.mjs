@@ -7,7 +7,25 @@ import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
-const REPO_ROOT = join(PKG_ROOT, "..", "..");
+const MONOREPO_ROOT = join(PKG_ROOT, "..", "..");
+const BUNDLED_ROOT = join(PKG_ROOT, "assets");
+
+async function pathExists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// When installed via npm/npx, the package ships `assets/` (workflows + context +
+// dispatch scripts). When running from a clone of the SEOS monorepo, fall back
+// to the monorepo root. `REPO_ROOT` is the base for every `workflows/`,
+// `context/`, and `packages/dispatch/` lookup below, so both layouts work.
+const REPO_ROOT = (await pathExists(join(BUNDLED_ROOT, "workflows")))
+  ? BUNDLED_ROOT
+  : MONOREPO_ROOT;
 
 const PRESETS = {
   "vite-react": {
@@ -104,15 +122,6 @@ Options:
 
 function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
-}
-
-async function pathExists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function prompt(rl, question, defaultValue) {

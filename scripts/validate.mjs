@@ -101,5 +101,20 @@ try {
   failed = true;
 }
 
+// CLI bundle must be regenerable without drift. Rebuild into a temp tree and
+// diff against the committed/regenerated packages/cli/assets. Catches stale
+// workflows/context/dispatch files shipped to npx users.
+try {
+  execSync("node scripts/sync-cli-bundle.mjs", {
+    cwd: ROOT,
+    stdio: "pipe",
+  });
+  console.log("ok cli bundle regenerated");
+} catch (err) {
+  console.error("cli bundle sync failed — run npm run sync-cli-bundle");
+  console.error(err.stderr?.toString() || err.message);
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log("validate: all checks passed");
